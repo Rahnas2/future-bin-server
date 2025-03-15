@@ -7,6 +7,7 @@ export interface IUser{
     email: string
     mobile: string
     googleId?: string | null
+    facebookId?: string
     password: string | null
     role: string
     image?: string | null

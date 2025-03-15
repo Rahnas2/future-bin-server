@@ -20,35 +20,25 @@ import { authResponseDto } from "../dtos/authResponseDto";
 import { TokenResponseDto } from "../dtos/tokenResponseDto";
 
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { googleAuthService } from "../infrastructure/services/googleAuthService";
+import { IGoogleAuthService } from "../interfaces/services/IGoogleAuthService";
+import { decode } from "punycode";
+import { IFacebookAuthService } from "../interfaces/services/IFacebookAuthService";
 
 
 @injectable()
 export class authInteractor implements IAuthInteractor {
-    private repository: IAuthRepository
-    private userRepository: IUserRepository
-    private otpService: IOtpService
-    private redisRepository: IRedisRepository
-    private cloudinaryService: ICloudinaryService
-    private jwtService: IJwtService
-    private hashingService: IHashingService
-
     constructor(
-        @inject(INTERFACE_TYPE.authRepository) repository: IAuthRepository,
-        @inject(INTERFACE_TYPE.userRepository) userRepository: IUserRepository,
-        @inject(INTERFACE_TYPE.otpService) otpService: IOtpService,
-        @inject(INTERFACE_TYPE.redisRepository) redisRepository: IRedisRepository,
-        @inject(INTERFACE_TYPE.cloudinaryService) cloudinaryService: ICloudinaryService,
-        @inject(INTERFACE_TYPE.jwtService) jwtService: IJwtService,
-        @inject(INTERFACE_TYPE.hashingService) hashingService: IHashingService
-    ) {
-        this.repository = repository
-        this.userRepository = userRepository
-        this.otpService = otpService
-        this.redisRepository = redisRepository
-        this.cloudinaryService = cloudinaryService
-        this.jwtService = jwtService
-        this.hashingService = hashingService
-    }
+        @inject(INTERFACE_TYPE.authRepository) private repository: IAuthRepository,
+        @inject(INTERFACE_TYPE.userRepository) private userRepository: IUserRepository,
+        @inject(INTERFACE_TYPE.otpService) private otpService: IOtpService,
+        @inject(INTERFACE_TYPE.redisRepository) private redisRepository: IRedisRepository,
+        @inject(INTERFACE_TYPE.cloudinaryService) private cloudinaryService: ICloudinaryService,
+        @inject(INTERFACE_TYPE.jwtService) private jwtService: IJwtService,
+        @inject(INTERFACE_TYPE.hashingService) private hashingService: IHashingService,
+        @inject(INTERFACE_TYPE.googleAuthService) private googleAuthService: IGoogleAuthService,
+        @inject(INTERFACE_TYPE.facebookAuthService) private facebookAuthService: IFacebookAuthService
+    ) { }
 
     //registeration step one 
     async basicInfo(userData: basicInfoDto) {
@@ -76,6 +66,83 @@ export class authInteractor implements IAuthInteractor {
             ...userData,
             password: hashedPassword
         })
+    }
+
+    async basicInfoGoogle(code: string) {
+
+        //get tokens from google
+        const tokens = await this.googleAuthService.getTokens(code)
+
+        //decode and validate id token
+        const decoded = await this.jwtService.decodeToken(tokens.id_token)
+        if(!decoded){
+            throw new InvalidCredentialsError('invalid')
+        }
+
+        // destructor recured values
+        const {sub, given_name, family_name, email } = decoded
+
+        //check handle user already exist
+        const user = await this.userRepository.findUserByEmail(email)
+        if(user){
+            throw new conflictError('already exist')
+        }
+
+        //generate otp
+        const otp = generateOTP()
+        console.log('otp ', otp)
+
+        //sent otp 
+        await this.otpService.sentOtp(email, otp)
+
+        //temperatly sotre otp to redis
+        await this.redisRepository.set(`otp:${email}`, otp, 300)
+
+        //temperarly store user data's in redis
+        await this.redisRepository.set(`user:${email}`, {
+            googleId: sub,
+            firstName: given_name,
+            lastName: family_name,
+            email: email
+        })    
+
+        //return email to controller
+        return email
+    }
+
+    async basicInfoFB(userId: string, token: string): Promise<string> {
+        
+        //get user details
+        const result = await this.facebookAuthService.getUserByFacebookIdAndAccessToken(userId, token)
+        const {id, first_name, last_name, email} = result.data
+        console.log('result ', result)
+
+        const user = await this.userRepository.findUserByEmail(email)
+        console.log('user ', user)
+        if(user){
+            throw new conflictError('already exist')
+        }
+
+        //generate otp
+        const otp = generateOTP()
+        console.log('otp ', otp)
+
+        //sent otp 
+        await this.otpService.sentOtp(email, otp)
+
+        //temperatly sotre otp to redis
+        await this.redisRepository.set(`otp:${email}`, otp, 300)
+
+        //temperarly store user data's in redis
+        await this.redisRepository.set(`user:${email}`, {
+            facebookId: id,
+            firstName: first_name,
+            lastName: last_name,
+            email: email
+        })
+
+        return email
+
     }
 
     //registeration step two
@@ -210,51 +277,101 @@ export class authInteractor implements IAuthInteractor {
 
 
         //return access token 
-        return { accessToken, refreshToken, role:user.role }
+        return { accessToken, refreshToken, role: user.role }
     }
 
     //google login
-    async googleLogin(code: string): Promise<string> {
-        const oauthConfig = getGoogleOAuthConfig(code)
-        console.log('auth config', oauthConfig)
+    async googleLogin(code: string): Promise<authResponseDto> {
 
-        try {
-            const response = await axios.post('https://oauth2.googleapis.com/token', {
-                code: code,
-                client_id: '3144012594-6hqsjqjc8gf3880dkp3n7vqsicml2as1.apps.googleusercontent.com',
-                client_secret: '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',
-                redirect_uri: 'http://localhost:5173/login',
-                grant_type: 'authorization_code'
-            },
-                {
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-                })
-        } catch (error) {
-            console.error('interactor axios ', error)
+        //get token from google
+        const tokens = await this.googleAuthService.getTokens(code)
+
+        //decode and validate ID token
+        const decoded = await this.jwtService.decodeToken(tokens.id_token)
+        if (!decoded) {
+            throw new InvalidCredentialsError('invalid')
         }
 
 
-        // console.log('reponse ', response)
-        // const { id_token } = response.data
-        // console.log('id token ', id_token)
+        //find user by google id
+        const { sub } = decoded
+        const user = await this.userRepository.findUserByGoogleId(sub)
+        if (!user) {
+            throw new notFound('user not found')
+        }
 
-        // const decodedToken = JSON.parse(Buffer.from(id_token.split('.')[1], 'base64').toString());
-        // const { email, name } = decodedToken
+        //check the user is blocked
+        if(user.isBlock){
+            throw new Forbidden('you are blocked by admin')
+        }
 
-        // const user = await this.repository.findByEmail(email)
+        //generate access and refresh token 
+        const accessToken = this.jwtService.generateAccessToken({ _id: user._id, role: user.role })
+        const refreshToken = this.jwtService.generateRefreshToken({ _id: user._id, role: user.role })
 
-        // if(!user){
-        //     throw new notFound('email not found')
-        // }
+        //return the response
+        return { accessToken, refreshToken, role: user.role }
+    }
 
-        // //generate access & refresh token
-        // const accessToken = this.jwtService.generateAccessToken({ userId: user._id })
-        // const refreshToken = this.jwtService.generateRefreshToken({ userId: user._id })
+    async facebookLogin(userId: string, token: string): Promise<authResponseDto> {
 
-        // return accessToken
-        return ''
+        //get user details
+        const result = await this.facebookAuthService.getUserByFacebookIdAndAccessToken(userId, token)
+        console.log('result ', result.data)
+        
+        //find user by facbook id
+        const user = await this.userRepository.findUserByFacebookId(result.data.id)
+
+        //check user exist in database
+        if(!user){
+            throw new notFound('user not found')
+        }
+
+        //check user is blocked
+        if(user.isBlock){
+            throw new notFound('you are blocked by admin')
+        }
+
+        //generate access and refresh token 
+        const accessToken = this.jwtService.generateAccessToken({ _id: user._id, role: user.role })
+        const refreshToken = this.jwtService.generateRefreshToken({ _id: user._id, role: user.role })
+
+        return { accessToken, refreshToken, role: user.role}
+    }
+
+    async forgotPassword(email: string): Promise<void> {
+        const user = await this.userRepository.findUserByEmail(email)
+
+        if(!user){
+            throw new notFound('user not found')
+        }
+
+        //generate otp 
+        const otp = generateOTP()
+        console.log('otp ', otp)
+
+        //send otp 
+        await this.otpService.sentOtp(email, otp)
+
+        //temporarily store otp to the redis
+        await this.redisRepository.set(`otp:${email}`, otp, 300)
+    }
+
+    async resetPassword(email: string, newPassword: string): Promise<void> {
+
+        const user = await this.userRepository.findUserByEmail(email)
+
+        if(!user){
+            throw new notFound('user not found')
+        }
+
+        const password = await this.hashingService.hash(newPassword)
+
+        const newUser = await this.userRepository.chagePassword(user._id as string, password)
+        console.log('new user ', newUser)
 
     }
+
 
     async refreshToken(refreshToken: string): Promise<TokenResponseDto> {
         const decode = await this.jwtService.verifyRefreshToken(refreshToken);
@@ -263,14 +380,14 @@ export class authInteractor implements IAuthInteractor {
             role: decode.role,
         });
 
-        if(decode.role !== 'admin') {
+        if (decode.role !== 'admin') {
             const user = await this.userRepository.findUserById(decode._id)
 
-            if(!user){
+            if (!user) {
                 throw new notFound('user not found')
             }
 
-            if(user.isBlock) {
+            if (user.isBlock) {
                 throw new Forbidden('you are blocked by admin')
             }
         }

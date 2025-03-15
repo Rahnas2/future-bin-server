@@ -30,6 +30,8 @@ export class userManagmentInteractor implements IUserManagmentInteractor {
         if (!user) {
             throw new notFound('user not found')
         }
+        user['password'] = null
+
         return user
     }
 
@@ -43,13 +45,17 @@ export class userManagmentInteractor implements IUserManagmentInteractor {
         if(!user){
             throw new notFound('user not found')
         }
+
         if(user?.role !== 'collector') {
             throw new InvalidCredentialsError('invalid role')
         }
+
         const collector = await this.collectorRepository.findCollectorDetails(userId)
         if(!collector) {
             throw new notFound('collector not found')
         }
+
+        collector['password'] = null
         console.log('interactor collecor', collector)
         return collector
     }

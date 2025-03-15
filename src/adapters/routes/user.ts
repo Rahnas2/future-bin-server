@@ -1,44 +1,33 @@
 import express from 'express'
 
-import { Container } from 'inversify'
+import container from '../../infrastructure/config/container'
 import { INTERFACE_TYPE } from '../../utils/appConst'
-import { userManagmentInteractor } from '../../interactors/userManagmentInteractor'
+
 import { userController } from '../controllers/userController'
 import { authMiddleware } from '../middleware/authMiddleware'
-// import { authController } from '../controllers/authController'
-import { jwtService } from '../../infrastructure/services/jwtService'
-import { userRepository } from '../../infrastructure/database/repositories/userRepository'
-import { collectorRepoitory } from '../../infrastructure/database/repositories/collectorRepository'
-import { emailService } from '../../infrastructure/services/emailService'
-import { cloudinaryService } from '../../infrastructure/services/cloudinaryService'
 import upload from '../middleware/multer'
-import { userInteractor } from '../../interactors/userInteractor'
+import { subscriptionController } from '../controllers/subscriptionController'
+import { pickupRequestController } from '../controllers/pickupRequestController'
 
-const container = new Container
 
-container.bind(INTERFACE_TYPE.jwtService).to(jwtService)
-container.bind(INTERFACE_TYPE.emailService).to(emailService)
-container.bind(INTERFACE_TYPE.cloudinaryService).to(cloudinaryService)
-
-container.bind(INTERFACE_TYPE.userRepository).to(userRepository)
-container.bind(INTERFACE_TYPE.collectorRepoitory).to(collectorRepoitory)
-
-container.bind(INTERFACE_TYPE.userManagmentInteractor).to(userManagmentInteractor) 
-container.bind(INTERFACE_TYPE.userInteractor).to(userInteractor)
-
-container.bind(INTERFACE_TYPE.authMiddleware).to(authMiddleware)
-
-container.bind(INTERFACE_TYPE.userController).to(userController)
 
 const AuthMiddleware = container.get<authMiddleware>(INTERFACE_TYPE.authMiddleware)
 const controller = container.get<userController>(INTERFACE_TYPE.userController)
+const SubscriptionController = container.get<subscriptionController>(INTERFACE_TYPE.subscriptionController)
+const PickupRequestController = container.get<pickupRequestController>(INTERFACE_TYPE.pickupRequestController)
 
 
 
 const router = express.Router()
 
 
-router.get('/profile', AuthMiddleware.validateJwt, controller.onFetchUser)
-router.put('/profile', AuthMiddleware.validateJwt, upload.single('profileImage'), controller.onEditUserProfile)
+router.get('/profile', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onFetchUser)
+router.put('/profile', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), upload.single('profileImage'), controller.onEditUserProfile)
+
+router.post('/change-password', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.onChangePassword)
+
+router.get('/subscriptions', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'admin'), SubscriptionController.OnfetchSubscriptons)
+
+router.post('/pickup-request', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), PickupRequestController.onCreatePickupRequest)
 
 export default router

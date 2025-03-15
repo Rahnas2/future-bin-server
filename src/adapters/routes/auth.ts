@@ -1,31 +1,14 @@
 import express from 'express'
-import { Container } from 'inversify'
+
 import { INTERFACE_TYPE } from '../../utils/appConst'
-// import { otpInteractor } from '../../interactors/otpInteractor'
-import { otpService } from '../../infrastructure/services/otpService'
+import container from '../../infrastructure/config/container'
+
 import { authController } from '../controllers/authController'
-import { authInteractor } from '../../interactors/authInteractor'
-import { authRepository } from '../../infrastructure/database/repositories/authRepository'
-import { redisRepository } from '../../infrastructure/database/repositories/redisRepository'
+
 
 import upload from '../middleware/multer'
-import { cloudinaryService } from '../../infrastructure/services/cloudinaryService'
-import { jwtService } from '../../infrastructure/services/jwtService'
-import { hashingService } from '../../infrastructure/services/hashingService'
-import { userRepository } from '../../infrastructure/database/repositories/userRepository'
 
-const container = new Container()
 
-container.bind(INTERFACE_TYPE.otpService).to(otpService)
-container.bind(INTERFACE_TYPE.authInteractor).to(authInteractor)
-container.bind(INTERFACE_TYPE.authRepository).to(authRepository)
-container.bind(INTERFACE_TYPE.userRepository).to(userRepository)
-container.bind(INTERFACE_TYPE.redisRepository).to(redisRepository)
-container.bind(INTERFACE_TYPE.cloudinaryService).to(cloudinaryService)
-container.bind(INTERFACE_TYPE.jwtService).to(jwtService)
-container.bind(INTERFACE_TYPE.hashingService).to(hashingService)
-
-container.bind(INTERFACE_TYPE.authController).to(authController)
 
 const controller = container.get<authController>(INTERFACE_TYPE.authController)
 
@@ -54,7 +37,14 @@ router.post('/login', controller.onLogin)
 
 router.get('/refresh-token', controller.onRefreshToken)
 
+router.get('/register/basic-info/google', controller.onBasicInfoGoogle)
 router.get('/login/google', controller.onGoogleLogin)
+
+router.post('/login/facebook', controller.onFacebookLogin)
+router.post('/register/basic-info/facebook', controller.onbasicInfoFB)
+
+router.post('/forgot-password', controller.onForgotPassword)
+router.post('/reset-password', controller.onResetPassword)
 
 router.post('/logout', controller.onLogOut)
 

@@ -13,6 +13,7 @@ const userSchema = new Schema<IUser>(
         email: { type: String, required: true, unique: true },
         mobile: { type: String, required: true },
         googleId: { type: String, default: null },
+        facebookId: { type: String, default: null },
         password: { type: String, default: null },
         role: { type: String, required: true },
         image: { type: String, default: null },

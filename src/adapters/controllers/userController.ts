@@ -5,6 +5,7 @@ import { INTERFACE_TYPE } from "../../utils/appConst";
 import { IUserManagmentInteractor } from "../../interfaces/interactors/IUserManagmentInteractor";
 import { AuthRequest } from "../../dtos/authRequestDto";
 import { IUserInteractor } from "../../interfaces/interactors/IUserInteractor";
+import { notFound } from "../../domain/errors";
 
 @injectable()
 export class userController {
@@ -15,7 +16,6 @@ export class userController {
         try {
 
             const userId = req._id
-            console.log('user id ', userId)
             const user = await this.userManagmentInteratcor.fetchUserDetail(userId as string)
             console.log('backend success', user)
             res.status(200).json({ message: 'success', user })
@@ -34,6 +34,24 @@ export class userController {
             res.status(200).json({ message: 'success', user })
         } catch (error) {
             console.log('error edit profile ', error)
+            next(error)
+        }
+    }
+
+    onChangePassword = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const id = req._id
+            const { currentPassword, newPassword } = req.body
+
+            if(!id) {
+                throw new notFound('id is missing')
+            }
+
+            await this.userInteractor.changePassword(id, currentPassword, newPassword)
+
+            res.status(200).json({message: 'success'})
+
+        } catch (error) {
             next(error)
         }
     }

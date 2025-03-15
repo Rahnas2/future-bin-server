@@ -36,5 +36,8 @@ export class jwtService {
         }
     }
 
+    decodeToken(token: string) {
+        return jwt.decode(token)
+    }
 
 }

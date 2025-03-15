@@ -6,4 +6,5 @@ export interface ICollectorRepository {
     findCollectorDetails(userId: string): Promise<collectorFullDetailsDto | null>
     findCollectorById(collectorId: string) : Promise<ICollector | null>
     updateCollectorRequestStatus(collectorID: string, status: string): Promise<void>
+    findActiveCollectorsByUserId(ids: string[]): Promise<{userId: string} [] | null> 
 }

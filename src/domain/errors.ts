@@ -39,3 +39,10 @@ export class Forbidden extends Error {
         this.name = 'Forbidden'
     }
 }
+
+export class DatabaseError extends Error {
+    constructor(message: string){
+        super(message)
+        this.name = 'DatabaseError'  
+    }
+}

@@ -2,15 +2,17 @@ import { inject, injectable } from "inversify";
 import { IUserInteractor } from "../interfaces/interactors/IUserInteractor";
 import { INTERFACE_TYPE } from "../utils/appConst";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
-import { notFound } from "../domain/errors";
+import { Forbidden, notFound } from "../domain/errors";
 import { IUser } from "../domain/entities/user";
 import { ICloudinaryService } from "../interfaces/services/ICloudinaryService";
+import { IHashingService } from "../interfaces/services/IHashingService";
 
 @injectable()
 export class userInteractor implements IUserInteractor {
 
     constructor(@inject(INTERFACE_TYPE.userRepository) private userRepository: IUserRepository,
-        @inject(INTERFACE_TYPE.cloudinaryService) private cloudinaryService: ICloudinaryService) { }
+        @inject(INTERFACE_TYPE.cloudinaryService) private cloudinaryService: ICloudinaryService,
+        @inject(INTERFACE_TYPE.hashingService) private hashingService: IHashingService) { }
 
     async getUserProfile(_id: string) {
         const user = await this.userRepository.findUserById(_id)
@@ -18,25 +20,46 @@ export class userInteractor implements IUserInteractor {
         if (!user) {
             throw new notFound('user not found')
         }
-
+        
         return user
     }
 
     async editUserProfile(data: Partial<IUser>, file?: Express.Multer.File): Promise<IUser> {
-        console.log('intersepter files ', file)
-        
-     
+
         let image = null
-        if(file) {
+        if (file) {
             image = await this.cloudinaryService.uploadImage(file.buffer, 'profileImage')
         }
 
-        const updatedPayload = {...data}
+        const updatedPayload = { ...data }
 
-        if(image) {
+        if (image) {
             updatedPayload.image = image
         }
         return await this.userRepository.updateUser(updatedPayload)
-    
+
+    }
+
+    async changePassword(id: string, currentPassword: string, newPassword: string): Promise<void> {
+        const user = await this.userRepository.findUserById(id)
+
+        if (!user) {
+            throw new notFound('user not found')
+        }
+
+        if(!user.password){
+            throw new notFound('password not found in db')
+        }
+
+        const passCheck = await this.hashingService.compare(currentPassword, user.password)
+
+        if(!passCheck){
+            throw new Forbidden('current password is incorrect')
+        }
+
+        const password = await this.hashingService.hash(newPassword)
+
+        await this.userRepository.chagePassword(id, password)
+
     }
 }

@@ -10,6 +10,7 @@ import { Types } from "mongoose";
 @injectable()
 export class collectorRepoitory implements ICollectorRepository {
 
+    //find all collectors with  registeration request approval status
     async findAllCollectorsWithStatus(approvedStatus: string): Promise<Partial<collectorFullDetailsDto>[] | []> {
         return await userModel.aggregate([
             {
@@ -49,6 +50,7 @@ export class collectorRepoitory implements ICollectorRepository {
         ])
     }
 
+    //find collectors
     async findCollectorDetails(userId: string): Promise<collectorFullDetailsDto | null> {
         const result =  await userModel.aggregate([
             {
@@ -72,12 +74,19 @@ export class collectorRepoitory implements ICollectorRepository {
         return result.length ? result[0] : null
     }
 
+    //find collector by id
     async findCollectorById(collectorId: string): Promise<ICollector | null> {
         return await collectorModel.findById(collectorId)
     }
 
+    //update collector registeration request status
     async updateCollectorRequestStatus(collectorId: string, status: string): Promise<void> {
         await collectorModel.findByIdAndUpdate(collectorId, { approvalStatus: status }, { new: true })
+    }
+
+    //find active collectors from an array of userId
+    async findActiveCollectorsByUserId(ids: string[]): Promise<{userId: string}[] | null > {
+        return await collectorModel.find({userId: { $in: ids }, status: 'active'}, {_id: 0, userId: 1})
     }
 
 }

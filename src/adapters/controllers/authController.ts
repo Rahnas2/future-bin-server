@@ -2,7 +2,8 @@ import { Response, Request, NextFunction } from "express";
 import { inject, injectable } from "inversify";
 import { IAuthInteractor } from "../../interfaces/interactors/IAuthInteractor";
 import { INTERFACE_TYPE } from "../../utils/appConst";
-import { basicInfoDto } from "../../dtos/basicInfoDto";
+import { notFound } from "../../domain/errors";
+
 
 @injectable()
 export class authController {
@@ -15,6 +16,7 @@ export class authController {
         this.interactor = interactor
     }
 
+    //registeration step 1 (normal)
     onbasicInfo = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const userData = req.body.userData
@@ -30,6 +32,43 @@ export class authController {
 
             }
 
+            next(error)
+        }
+    }
+
+    //registeration step 1 (google)
+    onBasicInfoGoogle = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            console.log('req query', req.query)
+            const { code } = req.query
+
+            if (!code) {
+                res.status(400).json({ message: 'missing authorization code' })
+            }
+
+            const email = await this.interactor.basicInfoGoogle(code as string)
+
+            res.status(200).json({ message: "success", email })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    //registeration step 1 (facebook)
+    onbasicInfoFB = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { userId, token } = req.body
+
+            if (!userId || userId == '' || !token || token == '') {
+                res.status(400).json({ message: "userId and accessToken are required" });
+                return
+            }
+
+            const email = await this.interactor.basicInfoFB(userId, token)
+
+            res.status(200).json({ message: 'success', email })
+
+        } catch (error) {
             next(error)
         }
     }
@@ -126,8 +165,79 @@ export class authController {
                 return
             }
 
-            const token = await this.interactor.googleLogin(code as string)
-            res.status(200).json({ message: 'success', accessToken: token })
+            const response = await this.interactor.googleLogin(code as string)
+
+            const { accessToken, refreshToken, role } = response
+
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: false,
+                sameSite: 'lax',
+                maxAge: 1 * 24 * 60 * 60 * 1000,
+            })
+
+            res.status(200).json({ message: 'success', accessToken, role })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    //facebook login
+    onFacebookLogin = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            //destucture user id and acccess token from body
+            const { userId, token } = req.body
+
+            //verify user ID and access token
+            if (!userId || userId == '' || !token || token == '') {
+                res.status(400).json({ message: "userId and accessToken are required" });
+                return
+            }
+
+            const { accessToken, refreshToken, role } = await this.interactor.facebookLogin(userId, token)
+
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: false,
+                sameSite: 'lax',
+                maxAge: 1 * 24 * 60 * 60 * 1000,
+            })
+
+            res.status(200).json({ message: 'success', accessToken, role })
+
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    onForgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { email } = req.body
+
+            if(!email){
+                res.status(400).json({message: 'email is required'})
+            }
+
+            await this.interactor.forgotPassword(email)
+
+            res.status(200).json({message: 'success'})
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    onResetPassword = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { email, newPassword } = req.body
+
+            if(!email || !newPassword) {
+                throw new notFound('email or password is missing')
+            }
+
+            await this.interactor.resetPassword(email, newPassword)
+
+            res.status(200).json({message: 'success'})
+            
         } catch (error) {
             next(error)
         }

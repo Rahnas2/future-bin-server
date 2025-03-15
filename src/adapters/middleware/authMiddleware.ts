@@ -34,19 +34,20 @@ export class authMiddleware {
 
 
             req._id = decode._id
+            req.role = decode.role
 
-            if (decode.role !== 'admin') {
+            // if (decode.role !== 'admin') {
 
-                const user = await this.userRepository.findUserById(decode._id)
+            //     const user = await this.userRepository.findUserById(decode._id)
 
-                if (!user) {
-                    throw new unAuthorized('user not found')
-                }
+            //     if (!user) {
+            //         throw new unAuthorized('user not found')
+            //     }
 
-                if (user.isBlock) {
-                    throw new Forbidden('you are blocked by admin')
-                }
-            }
+            //     if (user.isBlock) {
+            //         throw new Forbidden('you are blocked by admin')
+            //     }
+            // }
 
 
             console.log('token verified ')
@@ -57,5 +58,35 @@ export class authMiddleware {
         }
 
     }
+
+    restrictTo = (...allowedRoles: string[]) =>
+        async (req: AuthRequest, res: Response, next: NextFunction) => {
+            try {
+                if (!req._id || !req.role) {
+                    throw new Forbidden("Access denied");
+                }
+
+                if (!allowedRoles.includes(req.role)) {
+                    throw new Forbidden('invalid role')
+                }
+
+                if (req.role !== 'admin') {
+
+                    const user = await this.userRepository.findUserById(req._id)
+
+                    if (!user) {
+                        throw new unAuthorized('user not found')
+                    }
+
+                    if (user.isBlock) {
+                        throw new Forbidden('you are blocked by admin')
+                    }
+                }
+
+                next()
+            } catch (error) {
+                next(error)
+            }
+        }
 
 }
