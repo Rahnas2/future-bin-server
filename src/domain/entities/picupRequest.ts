@@ -18,6 +18,9 @@ export interface BasePickupRequest  {
         };
     },
     collectorId?: string,
+    collectorName?: string,
+    paymentStatus: string,
+    price: string,
     assignedAt?: Date,
     completedAt?: Date, 
     createdAt?: Date

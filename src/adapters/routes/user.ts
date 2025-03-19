@@ -30,4 +30,6 @@ router.get('/subscriptions', AuthMiddleware.validateJwt, AuthMiddleware.restrict
 
 router.post('/pickup-request', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), PickupRequestController.onCreatePickupRequest)
 
+router.get('/pickup-request/history', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), PickupRequestController.onUserPickupRequestHistory)
+
 export default router

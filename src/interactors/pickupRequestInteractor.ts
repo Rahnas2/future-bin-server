@@ -5,7 +5,7 @@ import { IPickupRequestRepository } from "../interfaces/repositories/IPickupRequ
 import { IPickupRequestInteractor } from "../interfaces/interactors/IPickupRequestInteractor";
 import { PickupRequest } from "../domain/entities/picupRequest";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
-import { DatabaseError, notFound } from "../domain/errors";
+import { conflictError, DatabaseError, notFound } from "../domain/errors";
 import { ICollectorRepository } from "../interfaces/repositories/ICollectorRepository";
 import { ISocketService } from "../interfaces/services/ISocketService";
 import { locationDto } from "../dtos/locationDto";
@@ -51,7 +51,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
     }
 
-    async getNearPickupRequestById(id: string): Promise<PickupRequest[] | []> {
+    async getPickupRequestByCollectorId(id: string): Promise<PickupRequest[] | []> {
 
         const user = await this.userRepository.findUserById(id)
         if (!user) {
@@ -71,6 +71,39 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             throw new notFound('request not found')
         }
         return request
+    }
+
+    async acceptRequest(collectorId: string, requestId: string, collectorName: string): Promise<void> {
+
+        const request = await this.pickupRequestRepository.checkRequestStatusById(requestId)
+
+        if(request.status !== 'pending'){
+            throw new conflictError(`Cannot accept request. current status is ${request.status}`)
+        }
+
+        const updatedData = {
+            collectorId: collectorId,
+            collectorName: collectorName,
+            status: 'accepted',
+            assignedAt: new Date(Date.now())
+        }
+
+        const updatedRequest = await this.pickupRequestRepository.findRequestByIdAndUpdate(requestId, updatedData)
+
+        //send notification to user
+        const userId = updatedRequest.userId
+        
+        this.SocketService.sentNotification(userId.toString(), 'accept-request', collectorName)
+
+    }
+
+    async userPickupRequestHistory(id: string, role: string): Promise<PickupRequest[] | []> {
+        
+        if(role === 'resident'){
+            return await this.pickupRequestRepository.findReqeustHistoryByUserId(id)
+        }
+
+        return this.pickupRequestRepository.findReqeustHistoryByCollectorId(id)
     }
 
 }

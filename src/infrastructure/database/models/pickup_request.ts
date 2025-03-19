@@ -54,6 +54,10 @@ const pickupRequestSchema = new Schema({
         ref: "collectors",
         default: null
     },
+    collectorName: {
+        type: String,
+        default: null
+    },
     weight: {
         type: String
     },

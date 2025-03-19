@@ -4,6 +4,7 @@ import { Request, Response, NextFunction } from "express";
 import { INTERFACE_TYPE } from "../../utils/appConst";
 import { IPickupRequestInteractor } from "../../interfaces/interactors/IPickupRequestInteractor";
 import { json } from "body-parser";
+import { emailService } from "../../infrastructure/services/emailService";
 
 
 @injectable()
@@ -11,6 +12,8 @@ export class pickupRequestController {
 
     constructor(@inject(INTERFACE_TYPE.pickupRequestInteractor) private pickupRequestInteractor: IPickupRequestInteractor) {}
 
+    
+    //create new pickup request
     onCreatePickupRequest = async(req: AuthRequest, res: Response, next: NextFunction) => {
         try {
             const userId = req._id
@@ -25,13 +28,14 @@ export class pickupRequestController {
 
             await this.pickupRequestInteractor.createPickupRequest(requestData)
 
-            res.status(201).json({message: 'your request is created'})
+            res.status(201).json({message: 'your request is created please wait for collector acceptence'})
 
         } catch (error) {
             next(error)
         }
     }
 
+    //get all neaby pending pickup request for collectors
     onGetNearPickupRequest = async(req: AuthRequest, res: Response, next: NextFunction) => {
 
         try {
@@ -42,7 +46,7 @@ export class pickupRequestController {
                 return 
             }
 
-            const requests = await this.pickupRequestInteractor.getNearPickupRequestById(id)
+            const requests = await this.pickupRequestInteractor.getPickupRequestByCollectorId(id)
 
             res.status(200).json({message: 'success', requests})
 
@@ -51,6 +55,7 @@ export class pickupRequestController {
         }
     }
 
+    //get pickup request by id
     ongetPickupRequestById = async(req: Request, res: Response, next: NextFunction) => {
         try {
             const id = req.params.id
@@ -67,4 +72,45 @@ export class pickupRequestController {
             next(error)
         }
     }
+
+    //accept a pickup request
+    onAcceptRequest = async(req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const collectorId = req._id
+
+            const { requestId, collectorName } = req.body
+            console.log('body ', req.body)
+
+            if(!collectorId){
+                res.status(400).json({message: 'id is missing'})
+                return 
+            }
+
+            await this.pickupRequestInteractor.acceptRequest(collectorId, requestId, collectorName)
+
+            res.status(200).json({message: 'success'})
+
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    onUserPickupRequestHistory = async(req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const id = req._id
+            const role = req.role
+
+            if(!id || !role){
+                res.status(400).json({message: 'id or role is missing'})
+                return 
+            }
+
+            const requestHistory = await this.pickupRequestInteractor.userPickupRequestHistory(id, role)
+
+            res.status(200).json({message: 'success', requestHistory})
+        } catch (error) {
+            next(error)
+        }
+    }
+    
 }

@@ -38,7 +38,7 @@ export class subscriptionInteractor implements ISubscriptionInteractor {
         console.log('updated data ', updatedData)
 
         //check a subscription exist with the same name
-        if (updatedData.name) {
+        if (updatedData && updatedData.name) {
             const isExist = await this.subscriptionRepositoy.findSubscriptionByName(updatedData.name)
             if (isExist) {
                 console.log('here ', isExist)
