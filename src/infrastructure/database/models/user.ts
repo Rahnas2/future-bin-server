@@ -1,12 +1,13 @@
 import  { Schema, model, ObjectId } from "mongoose";
 
 import { IUser } from "../../../domain/entities/user";
+import { IUserDocument } from "../../../interfaces/documents/IUserDocument";
 
 const { ObjectId } = Schema.Types;
 
 
 
-const userSchema = new Schema<IUser>(
+const userSchema = new Schema<IUserDocument>(
     {
         firstName: { type: String, required: true },
         lastName: { type: String, required: true },
@@ -36,6 +37,6 @@ const userSchema = new Schema<IUser>(
 
 userSchema.index({'address.location': '2dsphere'})
 
-const userModel = model<IUser>('user', userSchema)
+const userModel = model<IUserDocument>('user', userSchema)
 
 export default userModel

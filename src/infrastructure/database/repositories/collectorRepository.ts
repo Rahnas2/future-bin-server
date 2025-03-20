@@ -6,9 +6,16 @@ import { ICollectorRepository } from "../../../interfaces/repositories/ICollecto
 import userModel from "../models/user";
 import { collectorFullDetailsDto } from "../../../dtos/collectorFullDetailsDto";
 import { Types } from "mongoose";
+import { BaseRepository } from "./baseRepository";
+import { ICollectorDocument } from "../../../interfaces/documents/ICollectorDocument";
 
 @injectable()
-export class collectorRepoitory implements ICollectorRepository {
+export class collectorRepoitory extends BaseRepository<ICollectorDocument> implements ICollectorRepository {
+
+
+    constructor() {
+        super(collectorModel)
+    }
 
     //find all collectors with  registeration request approval status
     async findAllCollectorsWithStatus(approvedStatus: string): Promise<Partial<collectorFullDetailsDto>[] | []> {
@@ -43,7 +50,7 @@ export class collectorRepoitory implements ICollectorRepository {
                     password: 1,
                     image: 1,
                     "address.district": 1,
-                    "address.city":1,
+                    "address.city": 1,
                     "details.status": 1
                 }
             }
@@ -52,10 +59,10 @@ export class collectorRepoitory implements ICollectorRepository {
 
     //find collectors
     async findCollectorDetails(userId: string): Promise<collectorFullDetailsDto | null> {
-        const result =  await userModel.aggregate([
+        const result = await userModel.aggregate([
             {
                 $match: {
-                    _id: new Types.ObjectId(userId) 
+                    _id: new Types.ObjectId(userId)
                 }
             },
             {
@@ -85,8 +92,8 @@ export class collectorRepoitory implements ICollectorRepository {
     }
 
     //find active collectors from an array of userId
-    async findActiveCollectorsByUserId(ids: string[]): Promise<{userId: string}[] | null > {
-        return await collectorModel.find({userId: { $in: ids }, status: 'active'}, {_id: 0, userId: 1})
+    async findActiveCollectorsByUserId(ids: string[]): Promise<{ userId: string }[] | null> {
+        return await collectorModel.find({ userId: { $in: ids }, status: 'active' }, { _id: 0, userId: 1 })
     }
 
 }

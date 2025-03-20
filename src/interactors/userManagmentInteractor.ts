@@ -18,7 +18,7 @@ export class userManagmentInteractor implements IUserManagmentInteractor {
 
 
     async fetchUsers(): Promise<Partial<IUser>[]> {
-        return await this.userRepository.fetchAllUsers()
+        return await this.userRepository.findAll()
     }
 
     async fetchCollectors(approvedStatus: string): Promise<Partial<collectorFullDetailsDto>[]> {
@@ -26,7 +26,8 @@ export class userManagmentInteractor implements IUserManagmentInteractor {
     }
 
     async fetchUserDetail(userId: string): Promise<IUser> {
-        const user = await this.userRepository.findUserById(userId)
+        const user = await this.userRepository.findById(userId)
+
         if (!user) {
             throw new notFound('user not found')
         }
@@ -40,8 +41,8 @@ export class userManagmentInteractor implements IUserManagmentInteractor {
     }
 
     async fetchCollectorDetails(userId: string): Promise<collectorFullDetailsDto> {
-        const user = await this.userRepository.findUserById(userId)
-        console.log('user ', user)
+        const user = await this.userRepository.findById(userId)
+
         if(!user){
             throw new notFound('user not found')
         }
@@ -56,7 +57,7 @@ export class userManagmentInteractor implements IUserManagmentInteractor {
         }
 
         collector['password'] = null
-        console.log('interactor collecor', collector)
+
         return collector
     }
 

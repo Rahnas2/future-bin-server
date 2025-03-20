@@ -5,9 +5,18 @@ import { IUserRepository } from "../../../interfaces/repositories/IUserRepositor
 import userModel from "../models/user";
 import { collectorFullDetailsDto } from "../../../dtos/collectorFullDetailsDto";
 import { locationDto } from "../../../dtos/locationDto";
+import { BaseRepository } from "./baseRepository";
+import { Document, Model, Types } from "mongoose";
+import { IUserDocument } from "../../../interfaces/documents/IUserDocument";
+
+
 
 @injectable()
-export class userRepository implements IUserRepository {
+export class userRepository extends BaseRepository<IUserDocument> implements IUserRepository {
+
+    constructor(){
+        super(userModel)
+    }
 
     //find user by mongo id
     async findUserById(userId: string): Promise<IUser | null> {
@@ -35,17 +44,17 @@ export class userRepository implements IUserRepository {
     }
 
     //update user data
-    async updateUser(userData: Partial<IUser>): Promise<IUser> {
-        const user = await userModel.findByIdAndUpdate(userData._id, userData, { new: true });
-        if (!user) {
-            throw new notFound('user not found')
-        }
-        return user
-    }
+    // async updateUser(userData: Partial<IUser>): Promise<IUser> {
+    //     const user = await userModel.findByIdAndUpdate(userData._id, userData, { new: true });
+    //     if (!user) {
+    //         throw new notFound('user not found')
+    //     }
+    //     return user
+    // }
 
     //change password 
     async chagePassword(id: string, newPassword: string): Promise<IUser | null> {
-        return await userModel.findByIdAndUpdate(id, { password: newPassword }, { new: true })
+        return await this.model.findByIdAndUpdate(id, { password: newPassword }, { new: true })
     }
 
     //find all users

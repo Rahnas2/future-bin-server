@@ -2,7 +2,7 @@
 import { ObjectId } from "mongoose";
 
 export interface ICollector {
-    userId: ObjectId;
+    userId: string;
     idCard: {
         front: string;
         back: string;

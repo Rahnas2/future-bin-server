@@ -15,7 +15,7 @@ export class userInteractor implements IUserInteractor {
         @inject(INTERFACE_TYPE.hashingService) private hashingService: IHashingService) { }
 
     async getUserProfile(_id: string) {
-        const user = await this.userRepository.findUserById(_id)
+        const user = await this.userRepository.findById(_id)
 
         if (!user) {
             throw new notFound('user not found')
@@ -24,7 +24,7 @@ export class userInteractor implements IUserInteractor {
         return user
     }
 
-    async editUserProfile(data: Partial<IUser>, file?: Express.Multer.File): Promise<IUser> {
+    async editUserProfile(id: string, data: Partial<IUser>, file?: Express.Multer.File): Promise<IUser> {
 
         let image = null
         if (file) {
@@ -36,7 +36,7 @@ export class userInteractor implements IUserInteractor {
         if (image) {
             updatedPayload.image = image
         }
-        return await this.userRepository.updateUser(updatedPayload)
+        return await this.userRepository.findByIdAndUpdate(id, updatedPayload)
 
     }
 

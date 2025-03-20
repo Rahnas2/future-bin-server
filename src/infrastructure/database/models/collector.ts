@@ -1,14 +1,11 @@
-import  { Schema, model, ObjectId } from "mongoose";
+import  { Schema, model, Types } from "mongoose";
 
-import { ICollector } from "../../../domain/entities/collector";
+import { ICollectorDocument } from "../../../interfaces/documents/ICollectorDocument";
 
-const { ObjectId } = Schema.Types;
-
-
-const collectorSchema = new Schema<ICollector>(
+const collectorSchema = new Schema(
     {
         userId: {
-            type: ObjectId,
+            type: Types.ObjectId,
             ref: "userModel", 
             required: true,
         },
@@ -79,6 +76,6 @@ const collectorSchema = new Schema<ICollector>(
 );
 
 
-const collectorModel = model<ICollector>('collector', collectorSchema)
+const collectorModel = model<ICollectorDocument>('collector', collectorSchema)
 export default collectorModel
 

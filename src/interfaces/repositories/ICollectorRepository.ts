@@ -1,7 +1,9 @@
 import { ICollector } from "../../domain/entities/collector";
 import { collectorFullDetailsDto } from "../../dtos/collectorFullDetailsDto";
+import { ICollectorDocument } from "../documents/ICollectorDocument";
+import { IBaseRepository } from "./IBaseRepository";
 
-export interface ICollectorRepository {
+export interface ICollectorRepository extends IBaseRepository<ICollectorDocument>{
     findAllCollectorsWithStatus(status: string): Promise<Partial<collectorFullDetailsDto>[] | []>
     findCollectorDetails(userId: string): Promise<collectorFullDetailsDto | null>
     findCollectorById(collectorId: string) : Promise<ICollector | null>

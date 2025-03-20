@@ -29,8 +29,8 @@ export class userController {
         try {
             const userId = req._id
             const data = req.body
-            const userData = {_id: userId, ...data}
-            const user = await this.userInteractor.editUserProfile(userData, req.file)
+            // const userData = {_id: userId, ...data}
+            const user = await this.userInteractor.editUserProfile(userId as string, data, req.file)
             res.status(200).json({ message: 'success', user })
         } catch (error) {
             console.log('error edit profile ', error)
