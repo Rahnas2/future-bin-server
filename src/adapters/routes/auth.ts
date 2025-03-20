@@ -8,17 +8,14 @@ import { authController } from '../controllers/authController'
 
 import upload from '../middleware/multer'
 
-
-
 const controller = container.get<authController>(INTERFACE_TYPE.authController)
 
 const router = express.Router()
 
-// router.post('/sent-otp',controller.onSentOTP)
-// router.post('verify-otp', controller.onVerifyOTP)
-
 //register 
 router.post('/register/basic-info', controller.onbasicInfo)
+router.get('/register/basic-info/google', controller.onBasicInfoGoogle)
+router.post('/register/basic-info/facebook', controller.onbasicInfoFB)
 router.post('/register/verify-otp', controller.onVerfiyOtp)
 router.post('/register/update-role', controller.onUpdateRole)
 router.post('/register/complete-profile', upload.fields([
@@ -29,19 +26,18 @@ router.post('/register/complete-profile', upload.fields([
 ]),
     controller.onCompleteProfile)
     
+    
+
+//otp    
 router.post('/resent-otp', controller.onResentOtp)
 
 
 
 router.post('/login', controller.onLogin)
+router.get('/login/google', controller.onGoogleLogin)
+router.post('/login/facebook', controller.onFacebookLogin)
 
 router.get('/refresh-token', controller.onRefreshToken)
-
-router.get('/register/basic-info/google', controller.onBasicInfoGoogle)
-router.get('/login/google', controller.onGoogleLogin)
-
-router.post('/login/facebook', controller.onFacebookLogin)
-router.post('/register/basic-info/facebook', controller.onbasicInfoFB)
 
 router.post('/forgot-password', controller.onForgotPassword)
 router.post('/reset-password', controller.onResetPassword)

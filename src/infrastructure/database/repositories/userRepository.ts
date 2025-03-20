@@ -20,27 +20,27 @@ export class userRepository extends BaseRepository<IUserDocument> implements IUs
 
     //find user by mongo id
     async findUserById(userId: string): Promise<IUser | null> {
-        return await userModel.findById(userId)
+        return await this.model.findById(userId)
     }
 
     //find user by email
     async findUserByEmail(email: string): Promise<IUser | null> {
-        return await userModel.findOne({ email })
+        return await this.model.findOne({ email })
     }
 
     //find user by google id
     async findUserByGoogleId(googleId: string): Promise<IUser | null> {
-        return await userModel.findOne({ googleId: googleId })
+        return await this.model.findOne({ googleId: googleId })
     }
 
     //find user by facebook id
     async findUserByFacebookId(facebookId: string): Promise<IUser | null> {
-        return await userModel.findOne({ facebookId: facebookId })
+        return await this.model.findOne({ facebookId: facebookId })
     }
 
     //save new user
     async saveUser(userData: Partial<IUser>): Promise<IUser> {
-        return await userModel.create(userData)
+        return await this.model.create(userData)
     }
 
     //update user data
@@ -73,7 +73,7 @@ export class userRepository extends BaseRepository<IUserDocument> implements IUs
         }
 
         const status = user.isBlock
-        await userModel.findByIdAndUpdate(userId, {
+        await this.model.findByIdAndUpdate(userId, {
             $set: {
                 isBlock: !status
             }
@@ -83,7 +83,7 @@ export class userRepository extends BaseRepository<IUserDocument> implements IUs
     //find collectors from particlar distance
     async findNearCollectorsId(location: locationDto, maxDistance: number): Promise<{_id: string, firstName: string, lastName: string}[] | null> {
         try {
-            return await userModel.find({
+            return await this.model.find({
                 role: 'collector',
                 'address.location': {
                     $near: {

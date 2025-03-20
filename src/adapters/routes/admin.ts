@@ -13,7 +13,7 @@ import { subscriptionController } from '../controllers/subscriptionController'
 
 
 
-const controller = container.get<adminController>(INTERFACE_TYPE.adminController )
+const controller = container.get<adminController>(INTERFACE_TYPE.adminController)
 const userManagment = container.get<userManagmentController>(INTERFACE_TYPE.userManagmentController)
 const SubscriptionController = container.get<subscriptionController>(INTERFACE_TYPE.subscriptionController)
 const AuthMiddleware = container.get<authMiddleware>(INTERFACE_TYPE.authMiddleware)
@@ -21,23 +21,24 @@ const AuthMiddleware = container.get<authMiddleware>(INTERFACE_TYPE.authMiddlewa
 const router = express.Router()
 
 
-router.post('/login',controller.onLogin)
+router.post('/login', controller.onLogin)
 
-router.get('/fetch-users', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'),  userManagment.onFetchUsers)
-router.get('/user/view-detail', AuthMiddleware.validateJwt, userManagment.onUserDetail)
-router.patch('/user/status', AuthMiddleware.validateJwt, userManagment.onToggleStatus)
+router.use(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'))
 
-router.get('/collectors', AuthMiddleware.validateJwt, userManagment.onFetchCollectors)
-router.get('/collector/view-detail', AuthMiddleware.validateJwt, userManagment.onCollectorDetail)
-router.patch('/collector/request/approve', AuthMiddleware.validateJwt, userManagment.onAcceptRequest)
-router.patch('/collector/request/reject', AuthMiddleware.validateJwt, userManagment.onRejectRequest)
+router.get('/fetch-users', userManagment.onFetchUsers)
+router.get('/user/view-detail', userManagment.onUserDetail)
+router.patch('/user/status', userManagment.onToggleStatus)
+
+router.get('/collectors', userManagment.onFetchCollectors)
+router.get('/collector/view-detail', userManagment.onCollectorDetail)
+router.patch('/collector/request/approve', userManagment.onAcceptRequest)
+router.patch('/collector/request/reject', userManagment.onRejectRequest)
 
 
 //subscription managment 
-router.post('/subscription/add', AuthMiddleware.validateJwt, SubscriptionController.onAddSubscription)
-router.put('/subscription/edit', AuthMiddleware.validateJwt, SubscriptionController.onEditSubscription)
-router.delete('/subscription/delete', AuthMiddleware.validateJwt, SubscriptionController.onDeleteSubscription)
-
-
+router.route('/subscription')
+    .post(SubscriptionController.onAddSubscription)
+    .put(SubscriptionController.onEditSubscription)
+    .delete(SubscriptionController.onDeleteSubscription)
 
 export default router
