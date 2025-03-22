@@ -4,15 +4,21 @@ import { IPickupRequestRepository } from "../../../interfaces/repositories/IPick
 import { OnDemandPickupRequest, PickupRequest, SubscriptionPickupRequest } from "../../../domain/entities/picupRequest";
 import { locationDto } from "../../../dtos/locationDto";
 import { DatabaseError, notFound } from "../../../domain/errors";
+import { BaseRepository } from "./baseRepository";
+import { IPickupeRequestDocument } from "../../../interfaces/documents/IPickupRequestDocument";
 
 @injectable()
-export class pickupRequestRepository implements IPickupRequestRepository {
+export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocument> implements IPickupRequestRepository {
+
+    constructor() {
+        super(pickupRequestModel)
+    }
 
     async checkRequestStatusById(id: string): Promise<{ status: string; }> {
         try {
-            const status = await pickupRequestModel.findById(id, {_id: 0, status: 1})
-            
-            if(!status){
+            const status = await this.model.findById(id, { _id: 0, status: 1 })
+
+            if (!status) {
                 throw new notFound('request not found')
             }
 
@@ -53,9 +59,9 @@ export class pickupRequestRepository implements IPickupRequestRepository {
     async findRequestByIdAndUpdate(reqeustId: string, updatedData: Partial<PickupRequest>): Promise<PickupRequest> {
         try {
 
-            const updatedRequest = await pickupRequestModel.findByIdAndUpdate(reqeustId, {$set: updatedData}, {new: true})
+            const updatedRequest = await pickupRequestModel.findByIdAndUpdate(reqeustId, { $set: updatedData }, { new: true })
 
-            if(!updatedRequest){
+            if (!updatedRequest) {
                 throw new notFound('request not found')
             }
 
@@ -66,9 +72,17 @@ export class pickupRequestRepository implements IPickupRequestRepository {
         }
     }
 
+    async findByUserIdAndStatusThenUpdate(userId: string, status: string, updatedData: Partial<PickupRequest>): Promise<void> {
+        try {
+            await pickupRequestModel.updateOne({ userId: userId, status: status }, { $set: updatedData }, { new: true })
+        } catch (error) {
+            throw new DatabaseError('database error')
+        }
+    }
+
     async findReqeustHistoryByUserId(userId: string): Promise<PickupRequest[] | []> {
         try {
-            return await pickupRequestModel.find({userId: userId})
+            return await pickupRequestModel.find({ userId: userId })
         } catch (error) {
             throw new DatabaseError('database error')
         }
@@ -76,9 +90,9 @@ export class pickupRequestRepository implements IPickupRequestRepository {
 
     async findReqeustHistoryByCollectorId(collectorId: string): Promise<PickupRequest[] | []> {
         try {
-            return await pickupRequestModel.find({collectorId: collectorId})
+            return await pickupRequestModel.find({ collectorId: collectorId })
         } catch (error) {
-           throw new DatabaseError('database error')   
+            throw new DatabaseError('database error')
         }
     }
 

@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import { IPickupeRequestDocument } from "../../../interfaces/documents/IPickupRequestDocument";
 const { ObjectId } = Schema.Types;
 
 const pickupRequestSchema = new Schema({
@@ -85,6 +86,6 @@ const pickupRequestSchema = new Schema({
 
 pickupRequestSchema.index({'address.location': '2dsphere'})
 
-const pickupRequestModel = model("pickup_request", pickupRequestSchema)
+const pickupRequestModel = model<IPickupeRequestDocument>("pickup_request", pickupRequestSchema)
 
 export default pickupRequestModel

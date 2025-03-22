@@ -14,6 +14,7 @@ export class authMiddleware {
         @inject(INTERFACE_TYPE.userRepository) private userRepository: IUserRepository) { }
 
     validateJwt = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        console.log('hello guyss  ')
         try {
             const autorization = req.header("Authorization");
 
@@ -54,7 +55,6 @@ export class authMiddleware {
             next()
         } catch (error) {
             next(error)
-            // res.status(401).json({ message: "Unauthorized" })
         }
 
     }

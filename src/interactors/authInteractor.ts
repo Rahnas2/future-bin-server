@@ -24,13 +24,14 @@ import { googleAuthService } from "../infrastructure/services/googleAuthService"
 import { IGoogleAuthService } from "../interfaces/services/IGoogleAuthService";
 import { decode } from "punycode";
 import { IFacebookAuthService } from "../interfaces/services/IFacebookAuthService";
+import { ICollectorRepository } from "../interfaces/repositories/ICollectorRepository";
 
 
 @injectable()
 export class authInteractor implements IAuthInteractor {
     constructor(
-        @inject(INTERFACE_TYPE.authRepository) private repository: IAuthRepository,
         @inject(INTERFACE_TYPE.userRepository) private userRepository: IUserRepository,
+        @inject(INTERFACE_TYPE.collectorRepoitory) private collectorRepoitory: ICollectorRepository,
         @inject(INTERFACE_TYPE.otpService) private otpService: IOtpService,
         @inject(INTERFACE_TYPE.redisRepository) private redisRepository: IRedisRepository,
         @inject(INTERFACE_TYPE.cloudinaryService) private cloudinaryService: ICloudinaryService,
@@ -43,7 +44,8 @@ export class authInteractor implements IAuthInteractor {
     //registeration step one 
     async basicInfo(userData: basicInfoDto) {
 
-        const isEmailExist = await this.repository.findByEmail(userData.email)
+        const isEmailExist = await this.userRepository.findUserByEmail(userData.email)
+        
         if (isEmailExist) {
             throw new conflictError('Email is already taken')
         }
@@ -219,27 +221,25 @@ export class authInteractor implements IAuthInteractor {
             image
         }
 
-        const userId = await this.repository.saveUser(userToSave)
+        const user = await this.userRepository.create(userToSave)
 
         if (role === 'collector') {
             const collectorToSave = {
-                userId: userId,
+                userId: user._id,
                 idCard,
                 vehicleDetails: {
                     ...parsedVehicleInfo,
                     image: vehicleImage
                 }
             }
-            await this.repository.saveCollector(collectorToSave)
+            await this.collectorRepoitory.create(collectorToSave)
         }
 
         //delete user data from redis
         await this.redisRepository.delete(`user:${email}`)
 
-        const accessToken = this.jwtService.generateAccessToken({ _id: userId, role: role })
-        const refreshToken = this.jwtService.generateRefreshToken({ _id: userId, role: role })
-
-        // await this.redisRepository.set(`refreshToken:${userId}`, refreshToken)
+        const accessToken = this.jwtService.generateAccessToken({ _id: user._id, role: role })
+        const refreshToken = this.jwtService.generateRefreshToken({ _id: user._id, role: role })
 
         return { accessToken, refreshToken, role }
 
@@ -250,7 +250,7 @@ export class authInteractor implements IAuthInteractor {
         const { email, password } = data
 
         //check for user
-        const user = await this.repository.findByEmail(email)
+        const user = await this.userRepository.findUserByEmail(email)
 
         //user not found
         if (!user) {

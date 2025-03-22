@@ -20,6 +20,16 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
         }
     }
 
+    //find documents by user id
+    async finByUserId(userId: string): Promise<T[]> {
+        try {
+            const response = await this.model.find({userId: userId})
+            return response
+        } catch (error) {
+            throw new DatabaseError('data base error')
+        }
+    }
+
     async findAll(): Promise<T[]> {
         try {
             const response = await this.model.find()
@@ -30,7 +40,7 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
         }
     }
 
-    async create(data: T): Promise<T> {
+    async create(data: Partial<T>): Promise<T> {
         try {
             const result = await this.model.create(data)
             return result

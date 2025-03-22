@@ -4,18 +4,24 @@ import subscriptionModel from "../models/subscription";
 import { ISubscriptionRepository } from "../../../interfaces/repositories/ISubscriptionRepository";
 import { editSubscriptionDto } from "../../../dtos/editSubscriptionDto";
 import { notFound } from "../../../domain/errors";
+import { ISubscriptionDocument } from "../../../interfaces/documents/ISubscriptionDocument";
+import { BaseRepository } from "./baseRepository";
 
 @injectable()
-export class subscriptionRepositoy implements ISubscriptionRepository {
+export class subscriptionRepositoy extends BaseRepository<ISubscriptionDocument> implements ISubscriptionRepository {
+
+    constructor() {
+        super(subscriptionModel)
+    }
 
     async findAllSubscriptions(): Promise<Subscription[] | null> {
-        return await subscriptionModel.find({})
+        return await this.model.find({})
     }
 
     //find subscriptin by id
-    async findSubscriptionById(id: string): Promise<Subscription | null> {
-        return await subscriptionModel.findById(id)
-    }
+    // async findSubscriptionById(id: string): Promise<Subscription | null> {
+    //     return await subscriptionModel.findById(id)
+    // }
 
     //find subscriptin by name
     async findSubscriptionByName(name: string): Promise<Subscription | null> {
@@ -23,14 +29,14 @@ export class subscriptionRepositoy implements ISubscriptionRepository {
     }
 
     //add new subscription 
-    async addSubscription(data: Subscription): Promise<Subscription> {
-        return await subscriptionModel.create(data)
-    }
+    // async addSubscription(data: Subscription): Promise<Subscription> {
+    //     return await this.model.create(data)
+    // }
 
     //delete subsction by name
-    async deleteSubscriptionById(id: string): Promise<void> {
-        await subscriptionModel.findByIdAndDelete(id)
-    }
+    // async deleteSubscriptionById(id: string): Promise<void> {
+    //     await subscriptionModel.findByIdAndDelete(id)
+    // }
 
     //update subsction 
     async updateSubscriptionData(id: string, updatedData: Partial<editSubscriptionDto["updatedData"]>): Promise<Subscription | null> {
@@ -79,8 +85,8 @@ export class subscriptionRepositoy implements ISubscriptionRepository {
     //override features
     async overrideFeatures(id: string, features: string[]): Promise<Subscription | null> {
         return subscriptionModel.findByIdAndUpdate(id, {
-            $set: { features: features}
-        }, {new: true})
+            $set: { features: features }
+        }, { new: true })
     }
 
     async removeFeature(id: string, removedFeatures: number[]): Promise<Subscription | null> {

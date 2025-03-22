@@ -9,6 +9,8 @@ import { conflictError, DatabaseError, notFound } from "../domain/errors";
 import { ICollectorRepository } from "../interfaces/repositories/ICollectorRepository";
 import { ISocketService } from "../interfaces/services/ISocketService";
 import { locationDto } from "../dtos/locationDto";
+import { IStripService } from "../interfaces/services/IStripService";
+import { INotificationRepository } from "../interfaces/repositories/INotificationRepository";
 
 
 @injectable()
@@ -16,7 +18,9 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
     constructor(@inject(INTERFACE_TYPE.pickupRequestRepository) private pickupRequestRepository: IPickupRequestRepository,
         @inject(INTERFACE_TYPE.userRepository) private userRepository: IUserRepository,
         @inject(INTERFACE_TYPE.collectorRepoitory) private collectorRepoitory: ICollectorRepository,
-        @inject(INTERFACE_TYPE.SocketService) private SocketService: ISocketService
+        @inject(INTERFACE_TYPE.SocketService) private SocketService: ISocketService,
+        @inject(INTERFACE_TYPE.stripeService) private stripService: IStripService,
+        @inject(INTERFACE_TYPE.notificationRepository) private notificationRepository: INotificationRepository
     ) { }
 
     async createPickupRequest(requestData: PickupRequest): Promise<void> {
@@ -65,9 +69,9 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
     }
 
     async getPickupRequestById(id: string): Promise<PickupRequest> {
-        const request =  await this.pickupRequestRepository.findRequestById(id)
+        const request = await this.pickupRequestRepository.findRequestById(id)
 
-        if(!request){
+        if (!request) {
             throw new notFound('request not found')
         }
         return request
@@ -75,12 +79,13 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
     async acceptRequest(collectorId: string, requestId: string, collectorName: string): Promise<void> {
 
-        const request = await this.pickupRequestRepository.checkRequestStatusById(requestId)
-
-        if(request.status !== 'pending'){
+        //confirm the request status is pending
+        const request = await this.pickupRequestRepository.findById(requestId)
+        if (request.status !== 'pending') {
             throw new conflictError(`Cannot accept request. current status is ${request.status}`)
         }
 
+        //updated request
         const updatedData = {
             collectorId: collectorId,
             collectorName: collectorName,
@@ -88,18 +93,56 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             assignedAt: new Date(Date.now())
         }
 
-        const updatedRequest = await this.pickupRequestRepository.findRequestByIdAndUpdate(requestId, updatedData)
 
-        //send notification to user
-        const userId = updatedRequest.userId
-        
-        this.SocketService.sentNotification(userId.toString(), 'accept-request', collectorName)
+
+        //if the request was subscription update the (subscriptionPlanId) on the user collection,
+        //and cancell the previous subscription 
+        if (request.type === 'subscription') {
+            await this.userRepository.findByIdAndUpdate(request.userId, { subscriptionPlanId: request.subscriptionPlanId })
+
+            await this.pickupRequestRepository.findByUserIdAndStatusThenUpdate(request.userId, 'accepted', { status: 'canelled' })
+        }
+
+        const updatedRequest = await this.pickupRequestRepository.findByIdAndUpdate(requestId, updatedData)
+
+
+        // Handle payment based on request type
+        let paymentIntent;
+        let Amount = request.price * 100
+        if(request.type === 'subscription'){
+            paymentIntent = await this.stripService.createPaymentIntent(Amount)
+        }else if(request.type === 'on-demand'){
+            Amount = Amount * 0.3
+            paymentIntent = await this.stripService.createPaymentIntent(Amount)
+        }
+
+        console.log('payment intent')
+
+        if(paymentIntent){
+            //store notification in the database 
+            const data = {
+                userId: updatedRequest.userId,
+                message: `your ${request.type} is accepted by ${collectorName} please pay ${Amount / 100} to confirm the request`,
+                clientSecret: paymentIntent.clientSecret
+            }
+
+            const result = await this.notificationRepository.create(data)
+
+            this.SocketService.sentNotification(updatedRequest.userId.toString(), 'payment-request', {
+                id: result._id,
+                message: 'your request is approved',
+                collectorName,
+                clientSecret: paymentIntent.clientSecret,
+                amount: Amount / 100,
+                type: request.type
+            } )
+        }
 
     }
 
     async userPickupRequestHistory(id: string, role: string): Promise<PickupRequest[] | []> {
-        
-        if(role === 'resident'){
+
+        if (role === 'resident') {
             return await this.pickupRequestRepository.findReqeustHistoryByUserId(id)
         }
 

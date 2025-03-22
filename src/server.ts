@@ -41,9 +41,10 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use(authRouter)
+app.use('/admin', adminRouter)
 app.use(userRouter)
 app.use('/collector', collectorRouter)
-app.use('/admin', adminRouter)
+
 
 //error handling middleware 
 app.use(errorHandler)

@@ -1,6 +1,7 @@
 
 import { Schema, model } from "mongoose";
 import { Subscription } from "../../../domain/entities/subscription";
+import { ISubscriptionDocument } from "../../../interfaces/documents/ISubscriptionDocument";
 
 const subscriptionSchema = new Schema({
     name: {
@@ -22,6 +23,6 @@ const subscriptionSchema = new Schema({
     }
 }, { timestamps: true })
 
-const subscriptionModel = model<Subscription>('subscription', subscriptionSchema)
+const subscriptionModel = model<ISubscriptionDocument>('subscription', subscriptionSchema)
 
 export default subscriptionModel

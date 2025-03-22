@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { INTERFACE_TYPE } from "../../utils/appConst";
 import { ISubscriptionInteractor } from "../../interfaces/interactors/ISubscriptionInteractor";
+import { AuthRequest } from "../../dtos/authRequestDto";
 
 @injectable()
 export  class subscriptionController {
@@ -13,6 +14,22 @@ export  class subscriptionController {
            const subscriptions = await this.subscriptionInteractor.fetchSubscriptions() 
 
            res.status(200).json({message: 'success', subscriptions})
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    onFetchSubscriptonById = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            if(!req._id){
+                res.status(400).json({message: 'user id not found'})
+                return 
+            }
+            const subscriptionId = req.params.id
+            const subscription = await this.subscriptionInteractor.fetchSubscriptionById(subscriptionId)
+
+            res.status(200).json({message: 'success', subscription})
+
         } catch (error) {
             next(error)
         }

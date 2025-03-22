@@ -1,6 +1,8 @@
 import { PickupRequest } from "../../domain/entities/picupRequest";
 import { locationDto } from "../../dtos/locationDto";
 
+import { IBaseRepository } from "../repositories/IBaseRepository";
+
 export interface IPickupRequestInteractor {
     createPickupRequest(requestData: PickupRequest): Promise<void>
 

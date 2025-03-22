@@ -30,7 +30,7 @@ const userSchema = new Schema<IUserDocument>(
             },
         },
         isBlock: { type: Boolean, default: false },
-        subscriptionPlanId: { type: ObjectId, ref: 'SubscriptionPlan' },
+        subscriptionPlanId: { type: ObjectId, ref: 'subscriptions', default: null },
     },
     { timestamps: true }
 );

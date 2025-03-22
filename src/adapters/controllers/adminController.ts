@@ -9,7 +9,9 @@ export class adminController {
     constructor(@inject(INTERFACE_TYPE.adminInteractor) private adminteractor: IAdminteractor) { }
 
     onLogin = async (req: Request, res: Response, next: NextFunction) => {
+        console.log('login started ',)
         try {
+            
             const { email, password, secret } = req.body
 
             const response = await this.adminteractor.login(email, password, secret)
@@ -27,6 +29,7 @@ export class adminController {
             res.status(200).json({ message: 'success', accessToken, role })
 
         } catch (error) {
+            console.error('hello error ', error)
             next(error)
         }
     }

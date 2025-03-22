@@ -23,22 +23,20 @@ const router = express.Router()
 
 router.post('/login', controller.onLogin)
 
-router.use(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'))
-
-router.get('/fetch-users', userManagment.onFetchUsers)
-router.get('/user/view-detail', userManagment.onUserDetail)
+router.get('/fetch-users', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), userManagment.onFetchUsers)
+router.get('/user/view-detail', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), userManagment.onUserDetail)
 router.patch('/user/status', userManagment.onToggleStatus)
 
-router.get('/collectors', userManagment.onFetchCollectors)
-router.get('/collector/view-detail', userManagment.onCollectorDetail)
-router.patch('/collector/request/approve', userManagment.onAcceptRequest)
-router.patch('/collector/request/reject', userManagment.onRejectRequest)
+router.get('/collectors', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), userManagment.onFetchCollectors)
+router.get('/collector/view-detail', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), userManagment.onCollectorDetail)
+router.patch('/collector/request/approve', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), userManagment.onAcceptRequest)
+router.patch('/collector/request/reject', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), userManagment.onRejectRequest)
 
 
 //subscription managment 
 router.route('/subscription')
-    .post(SubscriptionController.onAddSubscription)
-    .put(SubscriptionController.onEditSubscription)
-    .delete(SubscriptionController.onDeleteSubscription)
+    .post(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), SubscriptionController.onAddSubscription)
+    .put(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), SubscriptionController.onEditSubscription)
+    .delete(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), SubscriptionController.onDeleteSubscription)
 
 export default router

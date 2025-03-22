@@ -5,6 +5,7 @@ import { Subscription } from "../domain/entities/subscription";
 import { ISubscriptionInteractor } from "../interfaces/interactors/ISubscriptionInteractor";
 import { editSubscriptionDto } from "../dtos/editSubscriptionDto";
 import { conflictError } from "../domain/errors";
+import { ISubscriptionDocument } from "../interfaces/documents/ISubscriptionDocument";
 
 
 @injectable()
@@ -12,7 +13,11 @@ export class subscriptionInteractor implements ISubscriptionInteractor {
     constructor(@inject(INTERFACE_TYPE.subscriptionRepositoy) private subscriptionRepositoy: ISubscriptionRepository) { }
 
     async fetchSubscriptions(): Promise<Subscription[] | null> {
-        return await this.subscriptionRepositoy.findAllSubscriptions()
+        return await this.subscriptionRepositoy.findAll()
+    }
+
+    async fetchSubscriptionById(id: string): Promise<ISubscriptionDocument> {
+        return await this.subscriptionRepositoy.findById(id)
     }
 
     async addSubscription(data: Subscription) {
@@ -24,13 +29,13 @@ export class subscriptionInteractor implements ISubscriptionInteractor {
         }
 
         
-        const subscription = await this.subscriptionRepositoy.addSubscription(data)
+        const subscription = await this.subscriptionRepositoy.create(data)
         console.log('hello ',subscription)
         return subscription
     }
 
     async deleteSubscription(id: string) {
-        await this.subscriptionRepositoy.deleteSubscriptionById(id)
+        await this.subscriptionRepositoy.deleteById(id)
     }
 
     async editSubscription(id: string, data: editSubscriptionDto): Promise<Subscription | null> {

@@ -31,6 +31,10 @@ import { userInteractor } from "../../interactors/userInteractor";
 import { pickupRequestController } from "../../adapters/controllers/pickupRequestController";
 import { pickupRequestInteractor } from "../../interactors/pickupRequestInteractor";
 import { SocketConfig } from "./socket";
+import { stripeService } from "../services/stripService";
+import { notificationRepository } from "../database/repositories/notificationRepository";
+import { notificationController } from "../../adapters/controllers/notificationController";
+import { notificationInteractor } from "../../interactors/notificationInteractor";
 
 const container = new Container()
 
@@ -45,6 +49,8 @@ container.bind(INTERFACE_TYPE.googleAuthService).to(googleAuthService)
 container.bind(INTERFACE_TYPE.facebookAuthService).to(facebookAuthService)
 container.bind(INTERFACE_TYPE.emailService).to(emailService)
 container.bind(INTERFACE_TYPE.SocketService).to(SocketService)
+container.bind(INTERFACE_TYPE.stripeService).to(stripeService)
+container.bind(INTERFACE_TYPE.notificationController).to(notificationController)
 
 
 //repositories
@@ -55,7 +61,8 @@ container.bind(INTERFACE_TYPE.adminRepository).to(adminRepository)
 container.bind(INTERFACE_TYPE.collectorRepoitory).to(collectorRepoitory)
 container.bind(INTERFACE_TYPE.subscriptionRepositoy).to(subscriptionRepositoy)
 container.bind(INTERFACE_TYPE.pickupRequestRepository).to(pickupRequestRepository)
-container.bind(INTERFACE_TYPE.socketRepository).to(socketRepository)
+container.bind(INTERFACE_TYPE.socketRepository).to(socketRepository),
+container.bind(INTERFACE_TYPE.notificationRepository).to(notificationRepository),
 
 
 //interactors
@@ -65,6 +72,7 @@ container.bind(INTERFACE_TYPE.userInteractor).to(userInteractor)
 container.bind(INTERFACE_TYPE.userManagmentInteractor).to(userManagmentInteractor)
 container.bind(INTERFACE_TYPE.subscriptionInteractor).to(subscriptionInteractor)
 container.bind(INTERFACE_TYPE.pickupRequestInteractor).to(pickupRequestInteractor)
+container.bind(INTERFACE_TYPE.notificationInteractor).to(notificationInteractor)
 
 
 //controllers

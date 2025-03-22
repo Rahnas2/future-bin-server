@@ -1,15 +1,19 @@
 import { promises } from "dns";
 import { Subscription } from "../../domain/entities/subscription";
 import { editSubscriptionDto } from "../../dtos/editSubscriptionDto";
+import { IBaseRepository } from "./IBaseRepository";
+import { ISubscriptionDocument } from "../documents/ISubscriptionDocument";
 
-export interface ISubscriptionRepository {
-    findAllSubscriptions(): Promise<Subscription[] | null>
-    findSubscriptionById(id: string): Promise<Subscription | null>
+export interface ISubscriptionRepository extends IBaseRepository<ISubscriptionDocument>{
+
+    // findAllSubscriptions(): Promise<Subscription[] | null>
+    // findSubscriptionById(id: string): Promise<Subscription | null>
+
     findSubscriptionByName(name: string): Promise<Subscription | null>
 
-    deleteSubscriptionById(id: string): Promise<void>
+    // deleteSubscriptionById(id: string): Promise<void>
 
-    addSubscription(data: Subscription): Promise<Subscription>
+    // addSubscription(data: Subscription): Promise<Subscription>
 
     updateSubscriptionData(id: string, updatedData: Partial<editSubscriptionDto['updatedData']>): Promise<Subscription | null>
 
