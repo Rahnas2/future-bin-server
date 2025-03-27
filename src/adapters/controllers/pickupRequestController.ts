@@ -79,7 +79,6 @@ export class pickupRequestController {
             const collectorId = req._id
 
             const { requestId, collectorName } = req.body
-            console.log('body ', req.body)
 
             if(!collectorId){
                 res.status(400).json({message: 'id is missing'})

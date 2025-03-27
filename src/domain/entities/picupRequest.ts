@@ -1,3 +1,5 @@
+import { onDemandWasteTypeDto } from "../../dtos/onDemandWasteTypeDto";
+
 export interface BasePickupRequest<T extends 'on-demand' | 'subscription'> {
     userId: string;
     name: string;
@@ -25,8 +27,8 @@ export interface BasePickupRequest<T extends 'on-demand' | 'subscription'> {
 }
 
 export interface OnDemandPickupRequest extends BasePickupRequest<'on-demand'> {
-    wasteTypes: string[];
-    weight: string;
+    wasteTypes: onDemandWasteTypeDto[];
+    weight: number;
 }
 
 export interface SubscriptionPickupRequest extends BasePickupRequest<'subscription'> {

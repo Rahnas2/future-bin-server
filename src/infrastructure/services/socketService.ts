@@ -18,4 +18,6 @@ export class SocketService {
             this.socketConfig.getIO().to(socketId).emit(event, data);
         }
     }
+
+    
 }

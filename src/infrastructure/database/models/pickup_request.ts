@@ -21,29 +21,42 @@ const pickupRequestSchema = new Schema({
         enum: ["on-demand", "subscription"],
         required: true
     },
-    wasteTypes: {
-        type: [String]
-    },
+    wasteTypes: [{
+        name: {
+            type: String,
+            required: true
+        },
+        price: {
+            type: Number,
+            required: true,
+            min: 1
+        },
+        weight: {
+            type: Number,
+            default: 1,
+            min: 1
+        }
+    }],
     status: {
         type: String,
         enum: ["pending", "accepted", "completed", "cancelled"],
         default: 'pending'
     },
     address: {
-        street:{ 
-            type: String, required: true 
+        street: {
+            type: String, required: true
         },
-        houseNo: { 
-            type: String, required: true 
+        houseNo: {
+            type: String, required: true
         },
-        district: { 
-            type: String, required: true 
+        district: {
+            type: String, required: true
         },
-        city: { 
-            type: String, required: true 
+        city: {
+            type: String, required: true
         },
-        pincode: { 
-            type: Number, required: true 
+        pincode: {
+            type: Number, required: true
         },
         location: {
             type: { type: String, default: 'Point', required: true },
@@ -60,7 +73,7 @@ const pickupRequestSchema = new Schema({
         default: null
     },
     weight: {
-        type: String
+        type: Number
     },
     price: {
         type: Number
@@ -84,7 +97,7 @@ const pickupRequestSchema = new Schema({
     }
 }, { timestamps: true })
 
-pickupRequestSchema.index({'address.location': '2dsphere'})
+pickupRequestSchema.index({ 'address.location': '2dsphere' })
 
 const pickupRequestModel = model<IPickupeRequestDocument>("pickup_request", pickupRequestSchema)
 

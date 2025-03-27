@@ -35,6 +35,15 @@ import { stripeService } from "../services/stripService";
 import { notificationRepository } from "../database/repositories/notificationRepository";
 import { notificationController } from "../../adapters/controllers/notificationController";
 import { notificationInteractor } from "../../interactors/notificationInteractor";
+import { chatController } from "../../adapters/controllers/chatController";
+import { messagRepository } from "../database/repositories/messageRepository";
+import { chatInteractor } from "../../interactors/chatInteractor";
+import { chatRepository } from "../database/repositories/chatRepository";
+import { wasteTypeRepository } from "../database/repositories/wasteTypeRepository";
+import { wasteTypeInteractor } from "../../interactors/wasteTypeInteractor";
+import { wasteTypeController } from "../../adapters/controllers/wasteTypeController";
+import { paymentController } from "../../adapters/controllers/PaymentController";
+import { paymentInteractor } from "../../interactors/paymentInteractor";
 
 const container = new Container()
 
@@ -50,7 +59,7 @@ container.bind(INTERFACE_TYPE.facebookAuthService).to(facebookAuthService)
 container.bind(INTERFACE_TYPE.emailService).to(emailService)
 container.bind(INTERFACE_TYPE.SocketService).to(SocketService)
 container.bind(INTERFACE_TYPE.stripeService).to(stripeService)
-container.bind(INTERFACE_TYPE.notificationController).to(notificationController)
+
 
 
 //repositories
@@ -63,6 +72,9 @@ container.bind(INTERFACE_TYPE.subscriptionRepositoy).to(subscriptionRepositoy)
 container.bind(INTERFACE_TYPE.pickupRequestRepository).to(pickupRequestRepository)
 container.bind(INTERFACE_TYPE.socketRepository).to(socketRepository),
 container.bind(INTERFACE_TYPE.notificationRepository).to(notificationRepository),
+container.bind(INTERFACE_TYPE.messagRepository).to(messagRepository),
+container.bind(INTERFACE_TYPE.chatRepository).to(chatRepository),
+container.bind(INTERFACE_TYPE.wasteTypeRepository).to(wasteTypeRepository)
 
 
 //interactors
@@ -73,6 +85,9 @@ container.bind(INTERFACE_TYPE.userManagmentInteractor).to(userManagmentInteracto
 container.bind(INTERFACE_TYPE.subscriptionInteractor).to(subscriptionInteractor)
 container.bind(INTERFACE_TYPE.pickupRequestInteractor).to(pickupRequestInteractor)
 container.bind(INTERFACE_TYPE.notificationInteractor).to(notificationInteractor)
+container.bind(INTERFACE_TYPE.chatInteractor).to(chatInteractor)
+container.bind(INTERFACE_TYPE.wasteTypeInteractor).to(wasteTypeInteractor)
+container.bind(INTERFACE_TYPE.paymentInteractor).to(paymentInteractor)
 
 
 //controllers
@@ -83,6 +98,10 @@ container.bind(INTERFACE_TYPE.subscriptionController).to(subscriptionController)
 container.bind(INTERFACE_TYPE.collectorController).to(collectorController)
 container.bind(INTERFACE_TYPE.userController).to(userController)
 container.bind(INTERFACE_TYPE.pickupRequestController).to(pickupRequestController)
+container.bind(INTERFACE_TYPE.notificationController).to(notificationController)
+container.bind(INTERFACE_TYPE.chatController).to(chatController)
+container.bind(INTERFACE_TYPE.wasteTypeController).to(wasteTypeController)
+container.bind(INTERFACE_TYPE.paymentController).to(paymentController)
 
 
 //middlewares

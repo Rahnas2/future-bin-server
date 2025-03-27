@@ -104,40 +104,45 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         }
 
         const updatedRequest = await this.pickupRequestRepository.findByIdAndUpdate(requestId, updatedData)
-
+        console.log('updated request ')
 
         // Handle payment based on request type
-        let paymentIntent;
-        let Amount = request.price * 100
-        if(request.type === 'subscription'){
-            paymentIntent = await this.stripService.createPaymentIntent(Amount)
-        }else if(request.type === 'on-demand'){
-            Amount = Amount * 0.3
-            paymentIntent = await this.stripService.createPaymentIntent(Amount)
-        }
+        // let paymentIntent;
+        // let Amount = request.price * 100
+        // if (request.type === 'subscription') {
+        //     paymentIntent = await this.stripService.createPaymentIntent(Amount)
+        // } else if (request.type === 'on-demand') {
+        //     Amount = Amount * 0.3
+        //     paymentIntent = await this.stripService.createPaymentIntent(Amount)
+        // }
 
-        console.log('payment intent')
+        let paymentIntent = await this.stripService.createPaymentIntent(request.price * 100)
 
-        if(paymentIntent){
+        console.log('payment intent', paymentIntent)
+
+        if (paymentIntent) {
             //store notification in the database 
             const data = {
                 userId: updatedRequest.userId,
-                message: `your ${request.type} is accepted by ${collectorName} please pay ${Amount / 100} to confirm the request`,
-                clientSecret: paymentIntent.clientSecret
+                message: `your ${request.type} is accepted by ${collectorName} please pay ${request.price} to confirm the request`,
+                clientSecret: paymentIntent.clientSecret,
+                requestId
             }
 
             const result = await this.notificationRepository.create(data)
 
             this.SocketService.sentNotification(updatedRequest.userId.toString(), 'payment-request', {
                 id: result._id,
-                message: 'your request is approved',
-                collectorName,
+                message: `your ${request.type} is accepted by ${collectorName} please pay ${request.price} to confirm the request`,
                 clientSecret: paymentIntent.clientSecret,
-                amount: Amount / 100,
-                type: request.type
-            } )
+                requestId
+            })
         }
 
+    }
+
+    async updatePaymentStatus(requestId: string, paymentStatus: string) {
+        await this.pickupRequestRepository.findByIdAndUpdate(requestId, { paymentStatus })
     }
 
     async userPickupRequestHistory(id: string, role: string): Promise<PickupRequest[] | []> {

@@ -13,6 +13,10 @@ const notificationSchema = new Schema({
     },
     clientSecret: {
         type: String,
+    },
+    requestId: {
+        type: Types.ObjectId,
+        ref: 'pickup_request'
     }
 }) 
 

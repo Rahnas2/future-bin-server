@@ -45,7 +45,7 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
             const result = await this.model.create(data)
             return result
         } catch (error) {
-            throw new DatabaseError('data base error')
+            throw new DatabaseError('data base error ->' + error)
         }
     }
 

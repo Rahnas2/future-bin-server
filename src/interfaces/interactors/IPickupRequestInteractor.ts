@@ -14,4 +14,6 @@ export interface IPickupRequestInteractor {
 
     userPickupRequestHistory(id: string, role: string): Promise<PickupRequest[] | []>
 
+    updatePaymentStatus(id: string, paymentStatus: string): Promise<void>
+
 }
