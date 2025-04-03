@@ -39,7 +39,8 @@ export class chatRepository extends BaseRepository<IChatDocument> implements ICh
                     _id: chat._id.toString(),
                     lastMessage: {
                         message: chat.lastMessage.message,
-                        senderId: chat.lastMessage.senderId.toString()
+                        senderId: chat.lastMessage.senderId.toString(),
+                        isImage: chat.lastMessage.isImage
                     },
                     participanId: otherParticipant._id,
                     firstName: otherParticipant.firstName,
@@ -83,7 +84,8 @@ export class chatRepository extends BaseRepository<IChatDocument> implements ICh
                     _id: chat._id.toString(),
                     lastMessage: {
                         message: chat.lastMessage.message,
-                        senderId: chat.lastMessage.senderId.toString()
+                        senderId: chat.lastMessage.senderId.toString(),
+                        isImage: chat.lastMessage.isImage
                     },
                     participanId: otherParticipant._id,
                     firstName: otherParticipant.firstName,

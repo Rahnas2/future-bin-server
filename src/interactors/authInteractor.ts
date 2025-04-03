@@ -5,7 +5,6 @@ import { IOtpService } from "../interfaces/services/IOtpService";
 import generateOTP from "../utils/generateOTP";
 import { basicInfoDto } from "../dtos/basicInfoDto";
 import { IRedisRepository } from "../interfaces/repositories/IRedisRepository";
-import { completeProfileDto } from "../dtos/completeProfileDtos";
 import { IUser } from "../domain/entities/user";
 import { ICollector } from "../domain/entities/collector";
 import { ICloudinaryService } from "../interfaces/services/ICloudinaryService";

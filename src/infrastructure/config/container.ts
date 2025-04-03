@@ -42,8 +42,9 @@ import { chatRepository } from "../database/repositories/chatRepository";
 import { wasteTypeRepository } from "../database/repositories/wasteTypeRepository";
 import { wasteTypeInteractor } from "../../interactors/wasteTypeInteractor";
 import { wasteTypeController } from "../../adapters/controllers/wasteTypeController";
-import { paymentController } from "../../adapters/controllers/PaymentController";
+import { paymentController } from "../../adapters/controllers/paymentController";
 import { paymentInteractor } from "../../interactors/paymentInteractor";
+import { cloudinaryController } from "../../adapters/controllers/cloudinaryController";
 
 const container = new Container()
 
@@ -102,6 +103,7 @@ container.bind(INTERFACE_TYPE.notificationController).to(notificationController)
 container.bind(INTERFACE_TYPE.chatController).to(chatController)
 container.bind(INTERFACE_TYPE.wasteTypeController).to(wasteTypeController)
 container.bind(INTERFACE_TYPE.paymentController).to(paymentController)
+container.bind(INTERFACE_TYPE.cloudinaryController).to(cloudinaryController)
 
 
 //middlewares

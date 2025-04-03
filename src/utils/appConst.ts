@@ -1,30 +1,3 @@
-import { chatController } from "../adapters/controllers/chatController";
-import { collectorController } from "../adapters/controllers/collectorController";
-import { notificationController } from "../adapters/controllers/notificationController";
-import { paymentController } from "../adapters/controllers/PaymentController";
-import { pickupRequestController } from "../adapters/controllers/pickupRequestController";
-import { subscriptionController } from "../adapters/controllers/subscriptionController";
-import { wasteTypeController } from "../adapters/controllers/wasteTypeController";
-import { SocketConfig } from "../infrastructure/config/socket";
-import { chatRepository } from "../infrastructure/database/repositories/chatRepository";
-import { notificationRepository } from "../infrastructure/database/repositories/notificationRepository";
-import { pickupRequestRepository } from "../infrastructure/database/repositories/pickupRequestRepository";
-import { socketRepository } from "../infrastructure/database/repositories/socketRepository";
-import { subscriptionRepositoy } from "../infrastructure/database/repositories/subscriptionRepository";
-import { wasteTypeRepository } from "../infrastructure/database/repositories/wasteTypeRepository";
-import { facebookAuthService } from "../infrastructure/services/facebookAuthService";
-import { googleAuthService } from "../infrastructure/services/googleAuthService";
-import { SocketService } from "../infrastructure/services/socketService";
-import { stripeService } from "../infrastructure/services/stripService";
-import { chatInteractor } from "../interactors/chatInteractor";
-import { notificationInteractor } from "../interactors/notificationInteractor";
-import { paymentInteractor } from "../interactors/paymentInteractor";
-import { pickupRequestInteractor } from "../interactors/pickupRequestInteractor";
-import { subscriptionInteractor } from "../interactors/subscriptionInteractor";
-import { userInteractor } from "../interactors/userInteractor";
-import { wasteTypeInteractor } from "../interactors/wasteTypeInteractor";
-
-
 
 
 export const INTERFACE_TYPE = {
@@ -42,8 +15,8 @@ export const INTERFACE_TYPE = {
     chatController: Symbol.for('chatController'),
     wasteTypeController: Symbol.for('wasteTypeController'),
     paymentController: Symbol.for('paymentController'),
+    cloudinaryController: Symbol.for('cloudinaryController'),
     
-
 
     //interactors 
     otpInteractor: Symbol.for("otpInteractor"),

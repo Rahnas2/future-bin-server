@@ -13,6 +13,7 @@ const chatSchema = new Schema({
         },
         isImage: {
             type: Boolean,
+            default: false,
             required: true
         },
         senderId: {

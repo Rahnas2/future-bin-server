@@ -6,6 +6,7 @@ export interface UserChatListDto {
     lastMessage: {
         message: string,
         senderId: string,
+        isImage: boolean
     }
     participanId: string,
     firstName: string,

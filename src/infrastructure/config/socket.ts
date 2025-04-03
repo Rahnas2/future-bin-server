@@ -33,11 +33,11 @@ export class SocketConfig {
             if (_id) {
                 this.redisRepository.set(_id, socket.id);
                 socket.join(_id);
-                console.log(`Mapped ${_id} to socket ${socket.id}`);
+                console.log(`Mapped ${_id} to socket ${socket.id} image`);
             }
 
             socket.on('send message', async ({ receiverId, message, isImage }) => {
-                console.log(`New message  to ${receiverId}: ${message}`);
+                console.log(`New message  to ${receiverId}: ${message}  ${isImage}`);
 
                 //find isolated chat room  between user and collector
                 let chat = await this.chatRepository.findSingleChat(_id, receiverId)
@@ -59,6 +59,7 @@ export class SocketConfig {
                 // Get updated chat for BOTH participants
                 const updatedChatForReceiver = await this.chatRepository.findSingleChatInDetail(chat._id.toString(), receiverId);
                 const updatedChatForSender = await this.chatRepository.findSingleChatInDetail(chat._id.toString(), _id);
+                console.log('chat for sender ', updatedChatForSender)
 
                 // Emit to correct participants
                 this.io?.to(receiverId).emit('chat update', updatedChatForReceiver);

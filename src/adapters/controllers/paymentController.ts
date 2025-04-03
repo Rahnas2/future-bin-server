@@ -12,7 +12,6 @@ export class paymentController {
 
 
     onConfirmPayment = async (req: Request, res: Response, next: NextFunction) => {
-        console.log('hello payment started ')
         try {
             const { requestId, paymentStatus } = req.body
 

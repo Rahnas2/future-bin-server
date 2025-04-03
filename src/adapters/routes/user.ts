@@ -10,7 +10,8 @@ import { subscriptionController } from '../controllers/subscriptionController'
 import { pickupRequestController } from '../controllers/pickupRequestController'
 import { notificationController } from '../controllers/notificationController'
 import { chatController } from '../controllers/chatController'
-import { paymentController } from '../controllers/PaymentController'
+import { paymentController } from '../controllers/paymentController'
+import { cloudinaryController } from '../controllers/cloudinaryController'
 
 const AuthMiddleware = container.get<authMiddleware>(INTERFACE_TYPE.authMiddleware)
 const controller = container.get<userController>(INTERFACE_TYPE.userController)
@@ -19,6 +20,7 @@ const PickupRequestController = container.get<pickupRequestController>(INTERFACE
 const NotificationController = container.get<notificationController>(INTERFACE_TYPE.notificationController)
 const ChatController = container.get<chatController>(INTERFACE_TYPE.chatController)
 const PaymentController = container.get<paymentController>(INTERFACE_TYPE.paymentController)
+const CloudinaryController = container.get<cloudinaryController>(INTERFACE_TYPE.cloudinaryController)
 
 const router = express.Router()
 
@@ -45,11 +47,10 @@ router.route('/notications')
 router.get('/chat-list', AuthMiddleware.restrictTo('resident', 'collector'), ChatController.onGetChatList)
 
 router.route('/chat/messages')
-
 .post(AuthMiddleware.restrictTo('resident', 'collector'), ChatController.onSentMessage)
 .get(AuthMiddleware.restrictTo('resident', 'collector'), ChatController.onGetMessageHistory)
-
 router.get('/chat/message-between', AuthMiddleware.restrictTo('collector'), ChatController.onGetMessagesBetweenTwoUser)
+router.post('/chat/delete-image', AuthMiddleware.restrictTo('resident', 'collector'), CloudinaryController.onDeleteImage)
 
 router.put('/payment-status', AuthMiddleware.restrictTo('resident', 'admin'), PaymentController.onConfirmPayment)
 
