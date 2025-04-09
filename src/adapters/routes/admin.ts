@@ -9,11 +9,6 @@ import { authMiddleware } from '../middleware/authMiddleware'
 import { subscriptionController } from '../controllers/subscriptionController'
 import { wasteTypeController } from '../controllers/wasteTypeController'
 
-
-
-
-
-
 const controller = container.get<adminController>(INTERFACE_TYPE.adminController)
 const userManagment = container.get<userManagmentController>(INTERFACE_TYPE.userManagmentController)
 const SubscriptionController = container.get<subscriptionController>(INTERFACE_TYPE.subscriptionController)
@@ -34,7 +29,6 @@ router.get('/collector/view-detail', AuthMiddleware.validateJwt, AuthMiddleware.
 router.patch('/collector/request/approve', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), userManagment.onAcceptRequest)
 router.patch('/collector/request/reject', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), userManagment.onRejectRequest)
 
-
 //subscription management 
 router.route('/subscription')
     .post(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), SubscriptionController.onAddSubscription)
@@ -44,7 +38,7 @@ router.route('/subscription')
 
 //waste type management
 router.route('/waste-types')
-.get(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin', 'resident'), WasteTypeController.onGetAllWasteTypes)
+.get(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin', 'resident', 'collector'), WasteTypeController.onGetAllWasteTypes)
 .post(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), WasteTypeController.onAddWasteType)
 .put(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), WasteTypeController.onEditWasteType)
 .delete(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), WasteTypeController.onDeleteWasteType)

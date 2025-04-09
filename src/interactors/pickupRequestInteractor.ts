@@ -11,6 +11,8 @@ import { ISocketService } from "../interfaces/services/ISocketService";
 import { locationDto } from "../dtos/locationDto";
 import { IStripService } from "../interfaces/services/IStripService";
 import { INotificationRepository } from "../interfaces/repositories/INotificationRepository";
+import { requestCancellationDto } from "../dtos/requestCancellationDto";
+import { IPickupeRequestDocument } from "../interfaces/documents/IPickupRequestDocument";
 
 
 @injectable()
@@ -85,14 +87,17 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             throw new conflictError(`Cannot accept request. current status is ${request.status}`)
         }
 
+        //create payment intent 
+        let paymentIntent = await this.stripService.createPaymentIntent(request.totalAmount * 100, request.userId.toString())
+
         //updated request
-        const updatedData = {
+        const updatedData = {     
             collectorId: collectorId,
             collectorName: collectorName,
             status: 'accepted',
-            assignedAt: new Date(Date.now())
+            assignedAt: new Date(Date.now()),
+            paymentIntentId: paymentIntent.id
         }
-
 
 
         //if the request was subscription update the (subscriptionPlanId) on the user collection,
@@ -103,28 +108,16 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             await this.pickupRequestRepository.findByUserIdAndStatusThenUpdate(request.userId, 'accepted', { status: 'canelled' })
         }
 
+        
+
         const updatedRequest = await this.pickupRequestRepository.findByIdAndUpdate(requestId, updatedData)
-        console.log('updated request ')
-
-        // Handle payment based on request type
-        // let paymentIntent;
-        // let Amount = request.price * 100
-        // if (request.type === 'subscription') {
-        //     paymentIntent = await this.stripService.createPaymentIntent(Amount)
-        // } else if (request.type === 'on-demand') {
-        //     Amount = Amount * 0.3
-        //     paymentIntent = await this.stripService.createPaymentIntent(Amount)
-        // }
-
-        let paymentIntent = await this.stripService.createPaymentIntent(request.price * 100)
-
-        console.log('payment intent', paymentIntent)
 
         if (paymentIntent) {
             //store notification in the database 
             const data = {
                 userId: updatedRequest.userId,
-                message: `your ${request.type} is accepted by ${collectorName} please pay ${request.price} to confirm the request`,
+                type: 'payment_request',
+                message: `your ${request.type} is accepted by ${collectorName} please pay ${request.totalAmount} to confirm the request`,
                 clientSecret: paymentIntent.clientSecret,
                 requestId
             }
@@ -133,12 +126,30 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
             this.SocketService.sentNotification(updatedRequest.userId.toString(), 'payment-request', {
                 id: result._id,
-                message: `your ${request.type} is accepted by ${collectorName} please pay ${request.price} to confirm the request`,
+                message: `your ${request.type} is accepted by ${collectorName} please pay ${request.totalAmount} to confirm the request`,
                 clientSecret: paymentIntent.clientSecret,
                 requestId
             })
         }
 
+    }
+
+
+    async updatePickupRequest(id: string, data: Partial<PickupRequest>): Promise<IPickupeRequestDocument> {
+        return await this.pickupRequestRepository.findByIdAndUpdate(id, data)
+    }
+
+    async cancelRequest(id: string, role: "resident" | "collector", data: Partial<requestCancellationDto>): Promise<IPickupeRequestDocument> {
+        const updatedData = {
+            status: 'cancelled',
+            cancellation: {
+                cancelledBy: role,
+                reason: data.reason as string,
+                ...data
+            }
+        }
+
+        return await this.pickupRequestRepository.findByIdAndUpdate(id, updatedData)
     }
 
     async updatePaymentStatus(requestId: string, paymentStatus: string) {

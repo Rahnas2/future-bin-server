@@ -82,7 +82,7 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
 
     async findReqeustHistoryByUserId(userId: string): Promise<PickupRequest[] | []> {
         try {
-            return await pickupRequestModel.find({ userId: userId })
+            return await pickupRequestModel.find({ userId: userId }).sort({createdAt: -1})
         } catch (error) {
             throw new DatabaseError('database error')
         }
@@ -90,9 +90,9 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
 
     async findReqeustHistoryByCollectorId(collectorId: string): Promise<PickupRequest[] | []> {
         try {
-            return await pickupRequestModel.find({ collectorId: collectorId })
+            return await pickupRequestModel.find({ collectorId: collectorId }).sort({createdAt: -1})
         } catch (error) {
-            throw new DatabaseError('database error')
+            throw new DatabaseError('database error')      
         }
     }
 

@@ -1,9 +1,11 @@
 import { onDemandWasteTypeDto } from "../../dtos/onDemandWasteTypeDto";
+import { requestCancellationDto } from "../../dtos/requestCancellationDto";
 
 export interface BasePickupRequest<T extends 'on-demand' | 'subscription'> {
     userId: string;
     name: string;
     mobile: string;
+    email: string;
     type: T;
     status: string;
     address: {
@@ -19,8 +21,11 @@ export interface BasePickupRequest<T extends 'on-demand' | 'subscription'> {
     };
     collectorId?: string;
     collectorName?: string;
+    cancellation?: requestCancellationDto
     paymentStatus: string;
-    price: number;
+    totalAmount: number;
+    paidAmount: number;
+    paymentIntentId?: string;
     assignedAt?: Date;
     completedAt?: Date;
     createdAt?: Date;
@@ -28,7 +33,7 @@ export interface BasePickupRequest<T extends 'on-demand' | 'subscription'> {
 
 export interface OnDemandPickupRequest extends BasePickupRequest<'on-demand'> {
     wasteTypes: onDemandWasteTypeDto[];
-    weight: number;
+    totalWeight: number;
 }
 
 export interface SubscriptionPickupRequest extends BasePickupRequest<'subscription'> {

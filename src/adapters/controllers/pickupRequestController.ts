@@ -94,6 +94,23 @@ export class pickupRequestController {
         }
     }
 
+    onUpdatePickupRequest = async(req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { _id, ...data} = req.body
+
+            if(!_id){
+                res.status(400).json({message: 'id is missing'})
+                return
+            }
+
+            const request = await this.pickupRequestInteractor.updatePickupRequest(_id, data)
+
+            res.status(200).json({message: 'success', request})
+        } catch (error) {
+            next(error)
+        }
+    }
+
     onUserPickupRequestHistory = async(req: AuthRequest, res: Response, next: NextFunction) => {
         try {
             const id = req._id
@@ -110,6 +127,30 @@ export class pickupRequestController {
         } catch (error) {
             next(error)
         }
+    }
+
+
+    onCompleteRequest = async(req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            
+        } catch (error) {
+            
+        }
+    }
+
+    //cancel pickup request for both user and collector
+    onCacelRequest = async(req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const role = req.role
+            const {id, data} = req.body
+    
+            const request = await this.pickupRequestInteractor.cancelRequest(id, role as 'resident' | 'collector', data) 
+
+            res.status(200).json({message: 'success', request})
+        } catch (error) {
+            next(error)
+        }
+        
     }
     
 }

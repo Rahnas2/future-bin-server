@@ -11,13 +11,15 @@ export class SocketService {
         @inject(INTERFACE_TYPE.socketRepository) private socketRepository: ISocketRepository,
         @inject(SocketConfig) private socketConfig: SocketConfig) { }
 
-    async sentNotification(_id: string, event: string, data: any) {
-        const socketId = await this.socketRepository.getSocketId(_id);
-        console.log('socket id ', socketId)
-        if (socketId) {
-            this.socketConfig.getIO().to(socketId).emit(event, data);
-        }
+    async sentNotification(id: string, event: string, data: any) {
+        // const socketId = await this.socketRepository.getSocketId(_id);
+        // console.log('socket id ', socketId)
+        // if (socketId) {
+            this.socketConfig.getIO().to(id).emit(event, data);
+        // }
     }
+
+    
 
     
 }

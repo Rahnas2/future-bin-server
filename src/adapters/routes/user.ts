@@ -24,35 +24,37 @@ const CloudinaryController = container.get<cloudinaryController>(INTERFACE_TYPE.
 
 const router = express.Router()
 
-router.use(AuthMiddleware.validateJwt)
 
 router.route('/profile')
-.get(AuthMiddleware.restrictTo('resident'), controller.onFetchUser)
-.put(AuthMiddleware.restrictTo('resident', 'collector'), upload.single('profileImage'), controller.onEditUserProfile)
+.get(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onFetchUser)
+.put(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), upload.single('profileImage'), controller.onEditUserProfile)
 
-router.post('/change-password',AuthMiddleware.restrictTo('resident', 'collector'), controller.onChangePassword)
+router.post('/change-password',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.onChangePassword)
 
-router.get('/subscriptions', AuthMiddleware.restrictTo('resident', 'admin'), SubscriptionController.OnfetchSubscriptons)
+router.get('/subscriptions',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'admin'), SubscriptionController.OnfetchSubscriptons)
 
-router.get('/subscriptions/:id', AuthMiddleware.restrictTo('resident'), SubscriptionController.onFetchSubscriptonById)
+router.get('/subscriptions/:id',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), SubscriptionController.onFetchSubscriptonById)
 
-router.post('/pickup-request', AuthMiddleware.restrictTo('resident'), PickupRequestController.onCreatePickupRequest)
 
-router.get('/pickup-request/history', AuthMiddleware.restrictTo('resident', 'collector'), PickupRequestController.onUserPickupRequestHistory)
+//pickup request
+router.post('/pickup-request',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), PickupRequestController.onCreatePickupRequest)
+router.get('/pickup-request/history',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), PickupRequestController.onUserPickupRequestHistory)
+router.put('/pickup-request/cancel',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), PickupRequestController.onCacelRequest)
+router.put('/pickup-request/update',AuthMiddleware.validateJwt,  AuthMiddleware.restrictTo('resident', 'collector'), PickupRequestController.onUpdatePickupRequest)
 
 router.route('/notications')
-.get(AuthMiddleware.restrictTo('resident'), NotificationController.onFetchAllNotificationOfUser)
-.delete(AuthMiddleware.restrictTo('resident'), NotificationController.onDeleteNotifiation)
+.get(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), NotificationController.onFetchAllNotificationOfUser)
+.delete(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), NotificationController.onDeleteNotifiation)
 
 router.get('/chat-list', AuthMiddleware.restrictTo('resident', 'collector'), ChatController.onGetChatList)
 
 router.route('/chat/messages')
-.post(AuthMiddleware.restrictTo('resident', 'collector'), ChatController.onSentMessage)
-.get(AuthMiddleware.restrictTo('resident', 'collector'), ChatController.onGetMessageHistory)
-router.get('/chat/message-between', AuthMiddleware.restrictTo('collector'), ChatController.onGetMessagesBetweenTwoUser)
-router.post('/chat/delete-image', AuthMiddleware.restrictTo('resident', 'collector'), CloudinaryController.onDeleteImage)
+.post(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), ChatController.onSentMessage)
+.get(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), ChatController.onGetMessageHistory)
+router.get('/chat/message-between',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), ChatController.onGetMessagesBetweenTwoUser)
+router.post('/chat/delete-image',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), CloudinaryController.onDeleteImage)
 
-router.put('/payment-status', AuthMiddleware.restrictTo('resident', 'admin'), PaymentController.onConfirmPayment)
+router.put('/payment-status',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'admin'), PaymentController.onConfirmPayment)
 
 
 

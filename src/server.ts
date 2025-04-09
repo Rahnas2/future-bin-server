@@ -20,14 +20,18 @@ const socketConfig = container.get(SocketConfig);
 socketConfig.initializeSocket(server);
 
 
+//routes
+import webhookRouter from './adapters/routes/webhook'
+
 import authRouter from './adapters/routes/auth';
 import userRouter from './adapters/routes/user'
 import adminRouter from './adapters/routes/admin'
 import collectorRouter from './adapters/routes/collector'
+import paymentRouter from './adapters/routes/payment'
+import reviewRouter from './adapters/routes/review'
 
 import { errorHandler } from './adapters/middleware/errorHandler';
 
-import { INTERFACE_TYPE } from './utils/appConst';
 
 
 const PORT = process.env.PORT || 7070
@@ -37,6 +41,8 @@ app.use(cors({
     credentials: true
 }))
 
+app.use('/api/webhook', webhookRouter)
+
 app.use(express.json())
 app.use(cookieParser())
 
@@ -44,6 +50,8 @@ app.use(authRouter)
 app.use('/admin', adminRouter)
 app.use(userRouter)
 app.use('/collector', collectorRouter)
+app.use('/api', paymentRouter)
+app.use('/api/reviews', reviewRouter)
 
 
 //error handling middleware 

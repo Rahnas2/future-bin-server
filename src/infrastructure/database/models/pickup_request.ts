@@ -16,6 +16,10 @@ const pickupRequestSchema = new Schema({
         type: String,
         required: true
     },
+    email: {
+        type: String,
+        required: true
+    },
     type: {
         type: String,
         enum: ["on-demand", "subscription"],
@@ -72,11 +76,34 @@ const pickupRequestSchema = new Schema({
         type: String,
         default: null
     },
-    weight: {
+    cancellation: {
+        cancelledBy: {
+            type: String,
+            enum: ["user", "collector"],
+        },
+        reason: {
+            type: String
+        },
+        description: {
+            type: String
+        },
+        proof: {
+            type: String
+        },
+    },
+    totalWeight: {
         type: Number
     },
-    price: {
-        type: Number
+    totalAmount: {
+        type: Number,
+        required: true
+    },
+    paidAmount: {
+        type: Number,
+        default: 0
+    },
+    paymentIntentId: {
+        type: String
     },
     subscriptionPlanId: {
         type: ObjectId,

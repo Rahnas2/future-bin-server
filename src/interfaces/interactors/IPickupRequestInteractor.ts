@@ -1,5 +1,7 @@
 import { PickupRequest } from "../../domain/entities/picupRequest";
 import { locationDto } from "../../dtos/locationDto";
+import { requestCancellationDto } from "../../dtos/requestCancellationDto";
+import { IPickupeRequestDocument } from "../documents/IPickupRequestDocument";
 
 import { IBaseRepository } from "../repositories/IBaseRepository";
 
@@ -12,8 +14,12 @@ export interface IPickupRequestInteractor {
 
     acceptRequest(collectorId: string, requestId: string, collectorName: string): Promise<void>
 
+    updatePickupRequest(id: string, data: Partial<PickupRequest>): Promise<IPickupeRequestDocument>
+
     userPickupRequestHistory(id: string, role: string): Promise<PickupRequest[] | []>
 
     updatePaymentStatus(id: string, paymentStatus: string): Promise<void>
+
+    cancelRequest(id: string, role: 'resident' | 'collector', data: Partial<requestCancellationDto>): Promise<IPickupeRequestDocument>
 
 }

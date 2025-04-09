@@ -1,3 +1,7 @@
+import { reviewController } from "../adapters/controllers/reviewController";
+import { webhookController } from "../adapters/controllers/webhookController";
+import { reveiwRepository } from "../infrastructure/database/repositories/reviewRepository";
+import { reviewInteractor } from "../interactors/reviewInteractor.ts";
 
 
 export const INTERFACE_TYPE = {
@@ -16,6 +20,8 @@ export const INTERFACE_TYPE = {
     wasteTypeController: Symbol.for('wasteTypeController'),
     paymentController: Symbol.for('paymentController'),
     cloudinaryController: Symbol.for('cloudinaryController'),
+    webhookController: Symbol.for('webhookController'),
+    reviewController: Symbol.for('reviewController'),
     
 
     //interactors 
@@ -30,6 +36,7 @@ export const INTERFACE_TYPE = {
     chatInteractor: Symbol.for('chatInteractor'),
     wasteTypeInteractor: Symbol.for('wasteTypeInteractor'),
     paymentInteractor: Symbol.for('paymentInteractor'),
+    reviewInteractor: Symbol.for('reviewInteractor'),
 
     //repositories
     redisRepository: Symbol.for("redisRepository"),
@@ -44,6 +51,7 @@ export const INTERFACE_TYPE = {
     messagRepository: Symbol.for('messagRepository'),
     chatRepository: Symbol.for('chatRepository'),
     wasteTypeRepository: Symbol.for('wasteTypeRepository'),
+    reveiwRepository: Symbol.for('reveiwRepository'),
 
     //services
     otpService: Symbol.for("otpService"),    

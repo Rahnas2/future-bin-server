@@ -7,9 +7,17 @@ const notificationSchema = new Schema({
         ref: 'userModel',
         required: true
     },
+    type: {
+        type: String,
+        required: true
+    },
     message: {
         type: String,
         required: true
+    },
+    isRead: {
+        type: Boolean,
+        default: false
     },
     clientSecret: {
         type: String,

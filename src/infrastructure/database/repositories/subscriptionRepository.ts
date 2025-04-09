@@ -18,11 +18,6 @@ export class subscriptionRepositoy extends BaseRepository<ISubscriptionDocument>
         return await this.model.find({})
     }
 
-    //find subscriptin by id
-    // async findSubscriptionById(id: string): Promise<Subscription | null> {
-    //     return await subscriptionModel.findById(id)
-    // }
-
     //find subscriptin by name
     async findSubscriptionByName(name: string): Promise<Subscription | null> {
         return await subscriptionModel.findOne({ name: { $regex: new RegExp(name, 'i') } })

@@ -57,10 +57,6 @@ export class chatRepository extends BaseRepository<IChatDocument> implements ICh
     async findSingleChat(userId: string, receiverId: string): Promise<IChatDocument | null> {
         try {
             const chat = await this.model.findOne({ participants: { $all: [userId, receiverId] } })
-            // if(!chat){
-            //     throw new notFound('chat not found')
-            // } 
-
             return chat
         } catch (error) {
             throw new DatabaseError(`data base error find sinle chat ${error}`)

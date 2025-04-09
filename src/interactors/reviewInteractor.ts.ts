@@ -1,0 +1,57 @@
+import { inject, injectable } from "inversify";
+import { IReveiwInteractor } from "../interfaces/interactors/IReviewInteractor";
+import { Review } from "../domain/entities/review";
+import { IReviewDocument } from "../interfaces/documents/IReviewDocument";
+import { INTERFACE_TYPE } from "../utils/appConst";
+import { IReveiwRepository } from "../interfaces/repositories/IReviewRepository";
+import { conflictError } from "../domain/errors";
+
+@injectable()
+
+export class reviewInteractor implements IReveiwInteractor{
+
+    constructor(@inject(INTERFACE_TYPE.reveiwRepository) private reveiwRepository: IReveiwRepository){}
+    async addReview(data: Review): Promise<IReviewDocument> {
+
+        if(data.type === 'collector') {
+            const existingCollectorReview = await this.reveiwRepository.userHasReviewedCollector(data.userId, data.collectorId as string)
+
+            if(existingCollectorReview){
+                throw new conflictError('you are already added subscriptin for this collector')
+            }
+        }else {
+            const existingAppReview = await this.reveiwRepository.findOneByUserIdAndTypeApp(data.userId)
+            if(existingAppReview){
+                throw new conflictError('more than one review about us is not possible for single user')
+            }
+        }
+
+        
+        return await this.reveiwRepository.create(data)
+    }
+
+    async updateReview(id: string, data: Partial<IReviewDocument>): Promise<IReviewDocument> {
+        return this.reveiwRepository.findByIdAndUpdate(id, data)
+    }
+
+    async getAllReviews(): Promise<IReviewDocument[]> {
+        return this.reveiwRepository.findAll()
+    }
+
+    async getUserReviewAboutApp(userId: string): Promise<IReviewDocument | null> {
+        return this.reveiwRepository.findOneByUserIdAndTypeApp(userId)
+    }
+
+    async getUserReviewsAboutCollectors(userId: string): Promise<IReviewDocument[]> {
+        return this.reveiwRepository.findByUserIdAndTypeCollector(userId)
+    }
+
+    async getCollectorReviews(collectorId: string): Promise<IReviewDocument[]> {
+        return this.reveiwRepository.findByCollectorId(collectorId)
+    }
+
+    async deleteReview(id: string): Promise<void> {
+        await this.reveiwRepository.deleteById(id)
+    }
+
+}
