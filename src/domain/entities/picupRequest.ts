@@ -1,4 +1,5 @@
 import { onDemandWasteTypeDto } from "../../dtos/onDemandWasteTypeDto";
+import { pickupRequestRefundDto } from "../../dtos/pickupRequestRefundDto";
 import { requestCancellationDto } from "../../dtos/requestCancellationDto";
 
 export interface BasePickupRequest<T extends 'on-demand' | 'subscription'> {
@@ -22,6 +23,7 @@ export interface BasePickupRequest<T extends 'on-demand' | 'subscription'> {
     collectorId?: string;
     collectorName?: string;
     cancellation?: requestCancellationDto
+    refund?:  pickupRequestRefundDto
     paymentStatus: string;
     totalAmount: number;
     paidAmount: number;
@@ -39,6 +41,8 @@ export interface OnDemandPickupRequest extends BasePickupRequest<'on-demand'> {
 export interface SubscriptionPickupRequest extends BasePickupRequest<'subscription'> {
     subscriptionPlanId: string;
     subscriptionPlanName: string;
+    totalPickups: string,
+    completedPickups: string
 }
 
 export type PickupRequest = OnDemandPickupRequest | SubscriptionPickupRequest;

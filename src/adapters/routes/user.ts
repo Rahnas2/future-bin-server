@@ -36,11 +36,6 @@ router.get('/subscriptions',AuthMiddleware.validateJwt, AuthMiddleware.restrictT
 router.get('/subscriptions/:id',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), SubscriptionController.onFetchSubscriptonById)
 
 
-//pickup request
-router.post('/pickup-request',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), PickupRequestController.onCreatePickupRequest)
-router.get('/pickup-request/history',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), PickupRequestController.onUserPickupRequestHistory)
-router.put('/pickup-request/cancel',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), PickupRequestController.onCacelRequest)
-router.put('/pickup-request/update',AuthMiddleware.validateJwt,  AuthMiddleware.restrictTo('resident', 'collector'), PickupRequestController.onUpdatePickupRequest)
 
 router.route('/notications')
 .get(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), NotificationController.onFetchAllNotificationOfUser)

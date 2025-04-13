@@ -4,9 +4,9 @@ import { collectorFullDetailsDto } from "../../dtos/collectorFullDetailsDto"
 export interface IUserManagmentInteractor {
     toggleStatus(userId: string): void
 
-    fetchUsers(): Promise<Partial<IUser>[]>
+    fetchUsers(page: number, limit: number): Promise<{users: Partial<IUser>[], total: number}>
 
-    fetchCollectors(approvedStatus: string): Promise<Partial<collectorFullDetailsDto>[]>
+    fetchCollectors(approvedStatus: string, page: number, limit: number): Promise<{collectors: Partial<collectorFullDetailsDto>[], total: number}>
 
     fetchUserDetail(userId: string): Promise<IUser>
 

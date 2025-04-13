@@ -11,9 +11,10 @@ export interface IUserRepository extends BaseRepository<IUserDocument> {
     findUserByGoogleId(googleId: string | undefined): Promise<IUser | null>
     findUserByFacebookId(facebookId: string): Promise<IUser | null>
     saveUser(userData: Partial<IUser>): Promise<IUser>
-    // updateUser(user: Partial<IUser>): Promise<IUser>
     chagePassword(id: string, newPassword: string): Promise<IUser | null>
     toggleUserStatus(userId: string): Promise<void>
-    fetchAllUsers(): Promise<Partial<IUser>[]>
+
+    fetchAllUsers(page: number, limit: number): Promise<{users: Partial<IUser>[], total: number}>
+    
     findNearCollectorsId(location: locationDto, maxDistance: number): Promise<{_id: string, firstName: string, lastName: string}[] | null>
 }

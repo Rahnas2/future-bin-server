@@ -6,6 +6,7 @@ import { locationDto } from "../../../dtos/locationDto";
 import { DatabaseError, notFound } from "../../../domain/errors";
 import { BaseRepository } from "./baseRepository";
 import { IPickupeRequestDocument } from "../../../interfaces/documents/IPickupRequestDocument";
+import { pickupRequestStatusDto } from "../../../dtos/pickupReqeustStatusDto";
 
 @injectable()
 export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocument> implements IPickupRequestRepository {
@@ -28,14 +29,14 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
         }
     }
 
-    async findRequestById(id: string): Promise<PickupRequest | null> {
-        try {
-            return await pickupRequestModel.findById(id)
-        } catch (error) {
-            throw new DatabaseError('data base error')
-        }
+    // async findRequestById(id: string): Promise<PickupRequest | null> {
+    //     try {
+    //         return await pickupRequestModel.findById(id)
+    //     } catch (error) {
+    //         throw new DatabaseError('data base error')
+    //     }
 
-    }
+    // }
 
     async createRequest(requestData: PickupRequest): Promise<string> {
         const result = await pickupRequestModel.insertOne(requestData);
@@ -80,19 +81,51 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
         }
     }
 
-    async findReqeustHistoryByUserId(userId: string): Promise<PickupRequest[] | []> {
+    async findReqeustHistoryByUserIdAndStatus(userId: string, status: 'all' | pickupRequestStatusDto, page: number, limit: number): Promise<{requests: PickupRequest[] , total: number }> {
         try {
-            return await pickupRequestModel.find({ userId: userId }).sort({createdAt: -1})
+            const query: { userId: string, status?: pickupRequestStatusDto } = { userId }
+
+            if (status !== 'all') {
+                query.status = status;
+            }
+
+            const skip = (page - 1) * limit
+            const [requests, total] = await Promise.all([
+                this.model.find(query)
+                    .skip(skip)
+                    .limit(limit)
+                    .sort({ createdAt: -1 }),
+                this.model.countDocuments(query)
+            ])
+
+            return { requests, total }
         } catch (error) {
             throw new DatabaseError('database error')
         }
     }
 
-    async findReqeustHistoryByCollectorId(collectorId: string): Promise<PickupRequest[] | []> {
+    async findReqeustHistoryByCollectorIdAndStatus(collectorId: string, status: 'all' | pickupRequestStatusDto, page: number, limit: number): Promise<{requests: PickupRequest[] , total: number }> {
         try {
-            return await pickupRequestModel.find({ collectorId: collectorId }).sort({createdAt: -1})
+
+            const query: { collectorId: string, status?: pickupRequestStatusDto } = { collectorId }
+
+            if (status !== 'all') {
+                query.status = status;
+            }
+
+            const skip = (page - 1) * limit
+
+            const [requests, total] = await Promise.all([
+                this.model.find(query)
+                .skip(skip)
+                .limit(limit)
+                .sort({ createdAt: -1 }), 
+                this.model.countDocuments(query)
+            ])
+
+            return { requests, total }
         } catch (error) {
-            throw new DatabaseError('database error')      
+            throw new DatabaseError('database error')
         }
     }
 

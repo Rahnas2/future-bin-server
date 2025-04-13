@@ -16,10 +16,22 @@ router.route('/')
 .post(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onAddReview)
 .put(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'admin'), controller.onUpdateReview)
 .delete(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'admin'), controller.onDeleteReview)
+router.get('/app', controller.onGetAllAppReviews)
 
-router.get('/my-review/app', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onGetUserReviewsAbountCollectors)
+
+//get user review about app return single document
+router.get('/my-review/app', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onGetUserReviewAboutApp)
+
+//get user review about a collector with the collector id return single document
+router.get('/my-review/:collectorId', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onGetUserReviewWithCollectorId)
+
+//get user reveiw about collector return arrray of document 
 router.get('/my-reviews/collectors', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onGetUserReviewsAbountCollectors)
 
+
+
+
+//get all reviews about the collector with collector id 
 router.get('/collector/:collectorId', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector', 'admin') , controller.onGetCollectorReviews)
 
 export default router

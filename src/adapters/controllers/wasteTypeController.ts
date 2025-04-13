@@ -10,10 +10,11 @@ export class wasteTypeController {
 
     onGetAllWasteTypes = async(req: Request, res: Response, next: NextFunction) => {
         try {
+            const page = parseInt(req.query.page as string) || 1
+            const limit = parseInt(req.query.limit as string) || 10
 
-            const wasteTypes = await this.wasteTypeInteractor.getAllWasteTypes()
-            res.status(200).json({message: 'success', wasteTypes})
-
+            const {wasteTypes, total} = await this.wasteTypeInteractor.getAllWasteTypes(page, limit)
+            res.status(200).json({message: 'success', wasteTypes, currentPage: page, totalPages: Math.ceil(total / limit)})
         } catch (error) {
             next(error)    
         }

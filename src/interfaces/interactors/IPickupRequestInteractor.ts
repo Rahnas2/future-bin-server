@@ -16,7 +16,7 @@ export interface IPickupRequestInteractor {
 
     updatePickupRequest(id: string, data: Partial<PickupRequest>): Promise<IPickupeRequestDocument>
 
-    userPickupRequestHistory(id: string, role: string): Promise<PickupRequest[] | []>
+    userPickupRequestHistoryByStatus(id: string, role: string, status: string, page: number, limit: number): Promise<{requests: PickupRequest[] , total: number }>
 
     updatePaymentStatus(id: string, paymentStatus: string): Promise<void>
 

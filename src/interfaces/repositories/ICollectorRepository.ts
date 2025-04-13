@@ -4,7 +4,8 @@ import { ICollectorDocument } from "../documents/ICollectorDocument";
 import { IBaseRepository } from "./IBaseRepository";
 
 export interface ICollectorRepository extends IBaseRepository<ICollectorDocument>{
-    findAllCollectorsWithStatus(status: string): Promise<Partial<collectorFullDetailsDto>[] | []>
+    findAllCollectorsWithStatus(status: string, page: number, limit: number): Promise<{collectors: Partial<collectorFullDetailsDto>[] , total: number}>
+
     findCollectorDetails(userId: string): Promise<collectorFullDetailsDto | null>
     findCollectorById(collectorId: string) : Promise<ICollector | null>
     updateCollectorRequestStatus(collectorID: string, status: string): Promise<void>

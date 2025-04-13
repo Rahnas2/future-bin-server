@@ -5,6 +5,7 @@ import { IReviewDocument } from "../interfaces/documents/IReviewDocument";
 import { INTERFACE_TYPE } from "../utils/appConst";
 import { IReveiwRepository } from "../interfaces/repositories/IReviewRepository";
 import { conflictError } from "../domain/errors";
+import { IUserDocument } from "../interfaces/documents/IUserDocument";
 
 @injectable()
 
@@ -34,12 +35,22 @@ export class reviewInteractor implements IReveiwInteractor{
         return this.reveiwRepository.findByIdAndUpdate(id, data)
     }
 
-    async getAllReviews(): Promise<IReviewDocument[]> {
-        return this.reveiwRepository.findAll()
+    async getAllReviews(page: number, limit: number): Promise<{reviews: IReviewDocument[], total: number}> {
+        const reviews =  await this.reveiwRepository.findAll(page, limit)
+        const total = await this.reveiwRepository.totalDocumentCount()
+        return { reviews, total }
     }
 
     async getUserReviewAboutApp(userId: string): Promise<IReviewDocument | null> {
         return this.reveiwRepository.findOneByUserIdAndTypeApp(userId)
+    }
+
+    async getUserReveiwWithCollectorId(userId: string, collectorId: string): Promise<IReviewDocument | null> {
+        return this.reveiwRepository.userHasReviewedCollector(userId, collectorId)
+    }
+
+    async getAllAppReviews(): Promise<{reviewDocument: IReviewDocument, userDocument: Partial<IUserDocument>} []> {
+        return this.reveiwRepository.findAllAppReviewsWithUserDetails()
     }
 
     async getUserReviewsAboutCollectors(userId: string): Promise<IReviewDocument[]> {

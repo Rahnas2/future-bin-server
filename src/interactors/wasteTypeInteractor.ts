@@ -9,8 +9,10 @@ import { conflictError, InvalidCredentialsError } from "../domain/errors";
 export class wasteTypeInteractor implements IWasteTypeInteractor {
     constructor(@inject(INTERFACE_TYPE.wasteTypeRepository) private wasteTypeRepository: IWasteTypeRepository) {}
 
-    async getAllWasteTypes(): Promise<IWasteTypeDocument []> {
-        return await this.wasteTypeRepository.findAll()
+    async getAllWasteTypes(page: number, limit: number): Promise<{wasteTypes: IWasteTypeDocument [], total: number}> {
+        const wasteTypes =  await this.wasteTypeRepository.findAll(page, limit)
+        const total = await this.wasteTypeRepository.totalDocumentCount()
+        return {wasteTypes, total}
     }
 
     async addWasteType(data: Partial<IWasteTypeDocument>): Promise<IWasteTypeDocument> {

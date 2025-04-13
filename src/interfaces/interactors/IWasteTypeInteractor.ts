@@ -1,7 +1,7 @@
 import { IWasteTypeDocument } from "../documents/IWasteTypeDocument";
 
 export interface IWasteTypeInteractor {
-    getAllWasteTypes(): Promise<IWasteTypeDocument []> 
+    getAllWasteTypes(page: number, limit: number): Promise<{wasteTypes: IWasteTypeDocument [], total: number}> 
     addWasteType(data: Partial<IWasteTypeDocument>): Promise<IWasteTypeDocument>
     editWasteType(id: string, data: Partial<IWasteTypeDocument>): Promise<IWasteTypeDocument>
     deleteWasteType(id: string): Promise<void>

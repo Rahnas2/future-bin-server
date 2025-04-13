@@ -1,6 +1,7 @@
 import { reviewController } from "../adapters/controllers/reviewController";
 import { webhookController } from "../adapters/controllers/webhookController";
 import { reveiwRepository } from "../infrastructure/database/repositories/reviewRepository";
+import { scheduledPickupRepository } from "../infrastructure/database/repositories/scheduledPickupRepository";
 import { reviewInteractor } from "../interactors/reviewInteractor.ts";
 
 
@@ -52,6 +53,7 @@ export const INTERFACE_TYPE = {
     chatRepository: Symbol.for('chatRepository'),
     wasteTypeRepository: Symbol.for('wasteTypeRepository'),
     reveiwRepository: Symbol.for('reveiwRepository'),
+    scheduledPickupRepository: Symbol.for('scheduledPickupRepository'),
 
     //services
     otpService: Symbol.for("otpService"),    

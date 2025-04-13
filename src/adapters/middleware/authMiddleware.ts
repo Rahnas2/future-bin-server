@@ -36,19 +36,6 @@ export class authMiddleware {
             req._id = decode._id
             req.role = decode.role
 
-            // if (decode.role !== 'admin') {
-
-            //     const user = await this.userRepository.findUserById(decode._id)
-
-            //     if (!user) {
-            //         throw new unAuthorized('user not found')
-            //     }
-
-            //     if (user.isBlock) {
-            //         throw new Forbidden('you are blocked by admin')
-            //     }
-            // }
-
 
             console.log('token verified ')
             next()
@@ -64,7 +51,7 @@ export class authMiddleware {
                 if (!req._id || !req.role) {
                     throw new Forbidden("Access denied");
                 }
-
+                
                 if (!allowedRoles.includes(req.role)) {
                     throw new Forbidden('invalid role')
                 }

@@ -43,7 +43,7 @@ const pickupRequestSchema = new Schema({
     }],
     status: {
         type: String,
-        enum: ["pending", "accepted", "completed", "cancelled"],
+        enum: ["pending", "accepted", "confirmed", "completed", "cancelled"],
         default: 'pending'
     },
     address: {
@@ -91,6 +91,22 @@ const pickupRequestSchema = new Schema({
             type: String
         },
     },
+    refund: {
+        refunded: {
+            type: Boolean,
+            default: false
+        },
+        refundedAmount: {
+            type: Number,
+            default: 0
+        },
+        refundId: {
+            type: String
+        },
+        refundedAt: {
+            type: Date
+        }
+    },
     totalWeight: {
         type: Number
     },
@@ -111,6 +127,12 @@ const pickupRequestSchema = new Schema({
     },
     subscriptionPlanName: {
         type: String,
+    },
+    totalPickups: {
+        type: Number
+    },
+    completedPickups: {
+        type: Number
     },
     paymentStatus: {
         type: String,

@@ -5,6 +5,7 @@ import { notFound } from "../../domain/errors";
 import { INTERFACE_TYPE } from "../../utils/appConst";
 import { INotificationRepository } from "../../interfaces/repositories/INotificationRepository";
 import { ISocketService } from "../../interfaces/services/ISocketService";
+import { IPickupRequestRepository } from "../../interfaces/repositories/IPickupRequestRepository";
 
 @injectable()
 export class stripeService implements IStripService {
@@ -12,7 +13,8 @@ export class stripeService implements IStripService {
     private stripe: Stripe;
 
     constructor(@inject(INTERFACE_TYPE.notificationRepository) private notificationRepository: INotificationRepository,
-        @inject(INTERFACE_TYPE.SocketService) private SocketService: ISocketService) {
+        @inject(INTERFACE_TYPE.SocketService) private SocketService: ISocketService,
+    @inject(INTERFACE_TYPE.pickupRequestRepository) private pickupRequestRepository: IPickupRequestRepository) {
         this.stripe = new Stripe(process.env.STRIPE_SECRET as string);
     }
 
@@ -91,6 +93,9 @@ export class stripeService implements IStripService {
             case 'payment_intent.payment_failed':
                 await this.handlePaymentFailed(event.data.object);
                 break;
+            case 'refund.updated':
+                await this.handleRefundSuccess(event.data.object);
+                break;
             default:
                 console.log(`Unhandled event type: ${event.type}`);
         }
@@ -107,7 +112,7 @@ export class stripeService implements IStripService {
 
         // Create notification
         const notificationType = isPaymentSuccess ? 'payment_success' : 'payment_failed';
-        const message = isPaymentSuccess 
+        const message = isPaymentSuccess
             ? `Payment of ₹${amount} completed successfully`
             : `Payment of ₹${amount} failed. Please try again`;
 
@@ -119,8 +124,8 @@ export class stripeService implements IStripService {
 
         // Send real-time notification
         this.SocketService.sentNotification(
-            userId, 
-            isPaymentSuccess ? 'payment_success' : 'payment_failed', 
+            userId,
+            isPaymentSuccess ? 'payment_success' : 'payment_failed',
             notification
         );
 
@@ -157,5 +162,18 @@ export class stripeService implements IStripService {
         this.SocketService.sentNotification(userId, 'new_notification', notification)
     }
 
+    private async handleRefundSuccess(refund: Stripe.Refund) {
+        const request = await this.pickupRequestRepository.findOne({ paymentIntentId: refund.payment_intent });
+
+        if (request) {
+            const data = {
+                refunded: true,
+                refundedAmount: refund.amount / 100,
+                refundId: refund.id,
+                refundedAt: new Date(refund.created * 1000)
+            }
+            await this.pickupRequestRepository.findByIdAndUpdate(request._id, {refund: data});
+        }
+    }
 
 }

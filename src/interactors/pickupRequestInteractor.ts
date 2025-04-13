@@ -13,6 +13,7 @@ import { IStripService } from "../interfaces/services/IStripService";
 import { INotificationRepository } from "../interfaces/repositories/INotificationRepository";
 import { requestCancellationDto } from "../dtos/requestCancellationDto";
 import { IPickupeRequestDocument } from "../interfaces/documents/IPickupRequestDocument";
+import { pickupRequestStatusDto } from "../dtos/pickupReqeustStatusDto";
 
 
 @injectable()
@@ -38,21 +39,21 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         }
 
         //extract id's from collectors array
-        const usersIds = users.map(collector => collector._id);
+        const usersIds = users.map(collector => collector._id);    
 
         //find active collectors from nearby collectors
-        const activeCollectorsId = await this.collectorRepoitory.findActiveCollectorsByUserId(usersIds)
+        // const activeCollectorsId = await this.collectorRepoitory.findActiveCollectorsByUserId(usersIds)
 
-        if (!activeCollectorsId || !activeCollectorsId.length) {
-            throw new notFound("Sorry no collectors are active in your area")
-        }
+        // if (!activeCollectorsId || !activeCollectorsId.length) {
+        //     throw new notFound("Sorry no collectors are active in your area")
+        // }
 
         //create request and store _id
         const requestId = await this.pickupRequestRepository.createRequest(requestData)
 
         // Assigning request notification to near collectors
-        activeCollectorsId.forEach(collector => {
-            this.SocketService.sentNotification(collector.userId.toString(), 'new-request', requestId)
+        usersIds.forEach(userId => {
+            this.SocketService.sentNotification(userId, 'new-request', requestId)
         });
 
     }
@@ -66,12 +67,14 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
         const location = user.address.location
 
-        return await this.pickupRequestRepository.findPendingRequestsWithLocation(location, 5000)
+        const reuslt =  await this.pickupRequestRepository.findPendingRequestsWithLocation(location, 5000)   
+        console.log('reuslt from interactor ', reuslt)
+        return reuslt
 
     }
 
     async getPickupRequestById(id: string): Promise<PickupRequest> {
-        const request = await this.pickupRequestRepository.findRequestById(id)
+        const request = await this.pickupRequestRepository.findById(id)
 
         if (!request) {
             throw new notFound('request not found')
@@ -91,7 +94,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         let paymentIntent = await this.stripService.createPaymentIntent(request.totalAmount * 100, request.userId.toString())
 
         //updated request
-        const updatedData = {     
+        const updatedData = {
             collectorId: collectorId,
             collectorName: collectorName,
             status: 'accepted',
@@ -108,7 +111,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             await this.pickupRequestRepository.findByUserIdAndStatusThenUpdate(request.userId, 'accepted', { status: 'canelled' })
         }
 
-        
+
 
         const updatedRequest = await this.pickupRequestRepository.findByIdAndUpdate(requestId, updatedData)
 
@@ -149,20 +152,36 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             }
         }
 
-        return await this.pickupRequestRepository.findByIdAndUpdate(id, updatedData)
+        const result = await this.pickupRequestRepository.findByIdAndUpdate(id, updatedData)
+
+        let refundAmount = 0
+            if (result.paidAmount > 0 && result.type === 'on-demand') {
+                role === 'collector' ? refundAmount = result.totalAmount  : refundAmount = 90 * result.totalAmount / 100
+            } else if (result.paidAmount > 0 && result.type === 'subscription') {
+                role === 'collector' ? refundAmount = result.totalAmount : refundAmount = 0
+            }
+
+            if (refundAmount > 0) {
+                await this.stripService.createRefund(result.paymentIntentId!, refundAmount)
+            }
+
+        return await this.pickupRequestRepository.findById(id)
     }
 
     async updatePaymentStatus(requestId: string, paymentStatus: string) {
         await this.pickupRequestRepository.findByIdAndUpdate(requestId, { paymentStatus })
     }
 
-    async userPickupRequestHistory(id: string, role: string): Promise<PickupRequest[] | []> {
+    async userPickupRequestHistoryByStatus(id: string, role: string, status: 'all' | pickupRequestStatusDto, page: number, limit: number): Promise<{requests: PickupRequest[] , total: number }> {
+
 
         if (role === 'resident') {
-            return await this.pickupRequestRepository.findReqeustHistoryByUserId(id)
+            const result =  await this.pickupRequestRepository.findReqeustHistoryByUserIdAndStatus(id, status, page, limit)
+            return result
         }
 
-        return this.pickupRequestRepository.findReqeustHistoryByCollectorId(id)
+        const result =  this.pickupRequestRepository.findReqeustHistoryByCollectorIdAndStatus(id, status, page, limit)
+        return result
     }
 
 }

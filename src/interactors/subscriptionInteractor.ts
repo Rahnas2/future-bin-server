@@ -12,8 +12,10 @@ import { ISubscriptionDocument } from "../interfaces/documents/ISubscriptionDocu
 export class subscriptionInteractor implements ISubscriptionInteractor {
     constructor(@inject(INTERFACE_TYPE.subscriptionRepositoy) private subscriptionRepositoy: ISubscriptionRepository) { }
 
-    async fetchSubscriptions(): Promise<Subscription[] | null> {
-        return await this.subscriptionRepositoy.findAll()
+    async fetchSubscriptions(page: number, limit: number): Promise<{subscriptions: Subscription[] , total: number}> {
+        const subscriptions =  await this.subscriptionRepositoy.findAll(page, limit)
+        const total = await this.subscriptionRepositoy.totalDocumentCount()
+        return { subscriptions, total }
     }
 
     async fetchSubscriptionById(id: string): Promise<ISubscriptionDocument> {
@@ -27,7 +29,6 @@ export class subscriptionInteractor implements ISubscriptionInteractor {
         if (isExist) {
             throw new conflictError(`${data.name} already exist`)
         }
-
         
         const subscription = await this.subscriptionRepositoy.create(data)
         console.log('hello ',subscription)
@@ -51,7 +52,7 @@ export class subscriptionInteractor implements ISubscriptionInteractor {
             }
         }
 
-        console.log('features ',)
+        console.log('features ', features)
         //update basic details 
         if (updatedData) {
             await this.subscriptionRepositoy.updateSubscriptionData(id, updatedData)

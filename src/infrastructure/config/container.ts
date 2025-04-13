@@ -49,6 +49,7 @@ import { webhookController } from "../../adapters/controllers/webhookController"
 import { reviewController } from "../../adapters/controllers/reviewController";
 import { reviewInteractor } from "../../interactors/reviewInteractor.ts";
 import { reveiwRepository } from "../database/repositories/reviewRepository";
+import { scheduledPickupRepository } from "../database/repositories/scheduledPickupRepository";
 
 const container = new Container()
 
@@ -81,6 +82,7 @@ container.bind(INTERFACE_TYPE.messagRepository).to(messagRepository),
 container.bind(INTERFACE_TYPE.chatRepository).to(chatRepository),
 container.bind(INTERFACE_TYPE.wasteTypeRepository).to(wasteTypeRepository)
 container.bind(INTERFACE_TYPE.reveiwRepository).to(reveiwRepository)
+container.bind(INTERFACE_TYPE.scheduledPickupRepository).to(scheduledPickupRepository)
 
 
 //interactors

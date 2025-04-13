@@ -18,8 +18,9 @@ export class collectorRepoitory extends BaseRepository<ICollectorDocument> imple
     }
 
     //find all collectors with  registeration request approval status
-    async findAllCollectorsWithStatus(approvedStatus: string): Promise<Partial<collectorFullDetailsDto>[] | []> {
-        return await userModel.aggregate([
+    async findAllCollectorsWithStatus(approvedStatus: string, page: number, limit: number): Promise<{collectors: Partial<collectorFullDetailsDto>[], total: number }> {
+        const skip = (page - 1) * limit
+        const result = await userModel.aggregate([
             {
                 $match: {
                     role: 'collector'
@@ -53,8 +54,16 @@ export class collectorRepoitory extends BaseRepository<ICollectorDocument> imple
                     "address.city": 1,
                     "details.status": 1
                 }
-            }
+            },
+            { $facet: {
+                data: [
+                  { $skip: skip },
+                  { $limit: limit },
+                ],
+                total: [{ $count: 'total' }]
+              }}
         ])
+        return { collectors: result[0].data, total: result[0].total[0]?.total || 0 };
     }
 
     //find collectors

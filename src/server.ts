@@ -27,6 +27,7 @@ import authRouter from './adapters/routes/auth';
 import userRouter from './adapters/routes/user'
 import adminRouter from './adapters/routes/admin'
 import collectorRouter from './adapters/routes/collector'
+import pickupRequestRouter from './adapters/routes/pickupRequest'
 import paymentRouter from './adapters/routes/payment'
 import reviewRouter from './adapters/routes/review'
 
@@ -50,6 +51,7 @@ app.use(authRouter)
 app.use('/admin', adminRouter)
 app.use(userRouter)
 app.use('/collector', collectorRouter)
+app.use('/api/pickup-requests', pickupRequestRouter)
 app.use('/api', paymentRouter)
 app.use('/api/reviews', reviewRouter)
 

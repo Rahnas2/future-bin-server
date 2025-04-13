@@ -8,6 +8,7 @@ import { AuthRequest } from "../../dtos/authRequestDto";
 export class collectorController { 
     constructor(@inject(INTERFACE_TYPE.userManagmentInteractor) private userManagementInteractor: IUserManagmentInteractor) {}
 
+    //fetch collector
     onFetchCollector = async(req: AuthRequest, res: Response, next: NextFunction) => {
         console.log('start fetching ')
         try {
@@ -19,4 +20,13 @@ export class collectorController {
             next(error)
         }
     } 
+
+    //update collector
+    onUpdateCollector = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            
+        } catch (error) {
+            next(error)
+        }
+    }
 }

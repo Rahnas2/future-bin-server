@@ -41,7 +41,7 @@ const collectorSchema = new Schema(
         status: {
             type: String,
             enum: ["active", "inactive"],
-            default: "active",
+            default: "inactive",
         },
         wallet: {
             balance: {

@@ -14,7 +14,7 @@ import { IUserDocument } from "../../../interfaces/documents/IUserDocument";
 @injectable()
 export class userRepository extends BaseRepository<IUserDocument> implements IUserRepository {
 
-    constructor(){
+    constructor() {
         super(userModel)
     }
 
@@ -43,14 +43,6 @@ export class userRepository extends BaseRepository<IUserDocument> implements IUs
         return await this.model.create(userData)
     }
 
-    //update user data
-    // async updateUser(userData: Partial<IUser>): Promise<IUser> {
-    //     const user = await userModel.findByIdAndUpdate(userData._id, userData, { new: true });
-    //     if (!user) {
-    //         throw new notFound('user not found')
-    //     }
-    //     return user
-    // }
 
     //change password 
     async chagePassword(id: string, newPassword: string): Promise<IUser | null> {
@@ -58,10 +50,16 @@ export class userRepository extends BaseRepository<IUserDocument> implements IUs
     }
 
     //find all users
-    async fetchAllUsers(): Promise<Partial<IUser>[]> {
-        return await userModel.find({ role: 'resident' },
-            { firstName: 1, lastName: 1, email: 1, mobile: 1, image: 1, 'address.district': 1, 'address.city': 1 }
-        )
+    async fetchAllUsers(page: number, limit: number): Promise<{users: Partial<IUser>[], total: number }> {
+        const skip = (page - 1) * limit
+        const [users, total] = await Promise.all([
+            userModel.find({ role: 'resident' }, {/* projection */ })
+                .skip(skip)
+                .limit(limit)
+                .sort({ createdAt: -1 }),
+            userModel.countDocuments({ role: 'resident' })
+        ]);
+        return { users, total };
     }
 
     //toggle users status block or unblok
@@ -81,7 +79,7 @@ export class userRepository extends BaseRepository<IUserDocument> implements IUs
     }
 
     //find collectors from particlar distance
-    async findNearCollectorsId(location: locationDto, maxDistance: number): Promise<{_id: string, firstName: string, lastName: string}[] | null> {
+    async findNearCollectorsId(location: locationDto, maxDistance: number): Promise<{ _id: string, firstName: string, lastName: string }[] | null> {
         try {
             return await this.model.find({
                 role: 'collector',

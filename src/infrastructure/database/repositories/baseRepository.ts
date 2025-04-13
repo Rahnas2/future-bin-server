@@ -20,6 +20,15 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
         }
     }
 
+    async findOne(filter: Partial<Record<keyof T, any>>): Promise<T | null> {
+        try {
+            const response = await this.model.findOne(filter);
+            return response;
+        } catch (error) {
+            throw new DatabaseError('database error');
+        }
+    }
+
     //find documents by user id
     async finByUserId(userId: string): Promise<T[]> {
         try {
@@ -30,13 +39,22 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
         }
     }
 
-    async findAll(): Promise<T[]> {
+    //find all documents
+    async findAll(page: number, limit: number): Promise<T[]> {
         try {
-            const response = await this.model.find()
-
+            const skip = (page - 1) * limit
+            const response = await this.model.find().skip(skip).limit(limit).sort({createdAt: -1})
             return response
         } catch (error) {
             throw new DatabaseError('data base error')
+        }
+    }
+
+    async totalDocumentCount(): Promise<number> {
+        try {
+            return this.model.countDocuments()
+        } catch (error) {
+            throw new DatabaseError('data base error ->' + error)
         }
     }
 

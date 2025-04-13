@@ -58,7 +58,7 @@ export class authController {
     onbasicInfoFB = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { userId, token } = req.body
-
+            console.log('facebook register body ', req.body)
             if (!userId || userId == '' || !token || token == '') {
                 res.status(400).json({ message: "userId and accessToken are required" });
                 return

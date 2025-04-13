@@ -12,11 +12,16 @@ export class userManagmentController {
     //fetch all users 
     onFetchUsers = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            console.log('cookies', req.cookies.refreshToken)
-            const users = await this.userManagmentInteratcor.fetchUsers()
+
+            const page = parseInt(req.query.page as string) || 1
+            const limit = parseInt(req.query.limit as string) || 10
+
+
+            const {users, total} = await this.userManagmentInteratcor.fetchUsers(page, limit)
+
             console.log('users ', users)
 
-            res.status(200).json({ message: 'success', users })
+            res.status(200).json({ message: 'success', users, currentPage: page, totalPages: Math.ceil(total / limit) })
         } catch (error) {
             next(error)
         }
@@ -25,7 +30,7 @@ export class userManagmentController {
     //fetch single user details
     onUserDetail = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            
+
             const { userId } = req.query
             console.log('user id ', userId)
             const user = await this.userManagmentInteratcor.fetchUserDetail(userId as string)
@@ -49,13 +54,18 @@ export class userManagmentController {
         }
     }
 
+    //fetch all collectors
     onFetchCollectors = async (req: Request, res: Response, next: NextFunction) => {
         try {
+
+            const page = parseInt(req.query.page as string) || 1
+            const limit = parseInt(req.query.limit as string) || 10
+
             const { approvedStatus } = req.query
 
-            const collectors = await this.userManagmentInteratcor.fetchCollectors(approvedStatus as string)
+            const {collectors, total} = await this.userManagmentInteratcor.fetchCollectors(approvedStatus as string, page, limit)
 
-            res.status(200).json({message: 'success', collectors})
+            res.status(200).json({ message: 'success', collectors, currentPage: page, totalPages: Math.ceil(total / limit) })
         } catch (error) {
             next(error)
         }
@@ -66,7 +76,7 @@ export class userManagmentController {
             const { userId } = req.query
             const collector = await this.userManagmentInteratcor.fetchCollectorDetails(userId as string)
 
-            res.status(200).json({message: 'success', collector})
+            res.status(200).json({ message: 'success', collector })
         } catch (error) {
             next(error)
         }

@@ -1,0 +1,1 @@
+export type pickupRequestStatusDto = 'pending' | 'accepted' | 'cancelled' | 'completed'

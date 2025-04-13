@@ -17,12 +17,14 @@ export class userManagmentInteractor implements IUserManagmentInteractor {
     ) { }
 
 
-    async fetchUsers(): Promise<Partial<IUser>[]> {
-        return await this.userRepository.findAll()
+    async fetchUsers(page: number, limit: number): Promise<{users: Partial<IUser>[], total: number}> {
+        return await this.userRepository.fetchAllUsers(page, limit)
     }
 
-    async fetchCollectors(approvedStatus: string): Promise<Partial<collectorFullDetailsDto>[]> {
-        return await this.collectorRepository.findAllCollectorsWithStatus(approvedStatus)
+    async fetchCollectors(approvedStatus: string, page: number, limit: number): Promise<{collectors: Partial<collectorFullDetailsDto>[], total: number}> {
+        const result =  await this.collectorRepository.findAllCollectorsWithStatus(approvedStatus, page, limit)
+        console.log('result ', result)
+        return result
     }
 
     async fetchUserDetail(userId: string): Promise<IUser> {

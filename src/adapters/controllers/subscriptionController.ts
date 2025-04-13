@@ -11,9 +11,12 @@ export  class subscriptionController {
 
     OnfetchSubscriptons = async(req: Request, res: Response, next: NextFunction) => {
         try {
-           const subscriptions = await this.subscriptionInteractor.fetchSubscriptions() 
+            const page = parseInt(req.query.page as string) || 1
+            const limit = parseInt(req.query.limit as string) || 10
 
-           res.status(200).json({message: 'success', subscriptions})
+           const {subscriptions, total} = await this.subscriptionInteractor.fetchSubscriptions(page, limit) 
+
+           res.status(200).json({message: 'success', subscriptions, currentPage: page, totalPages: Math.ceil(total / limit)})
         } catch (error) {
             next(error)
         }
@@ -56,6 +59,7 @@ export  class subscriptionController {
     onEditSubscription = async(req: Request, res: Response, next: NextFunction) => {
 
         try {
+            console.log('not coming heree ', req.body)
             const { id, ...data} = req.body
             
             if(!id){

@@ -20,6 +20,15 @@ const subscriptionSchema = new Schema({
     features: {
         type: [String],
         required: true
+    },
+    frequency: {
+        type: String,
+        enum: ['daily', 'weekly', 'monthly'],
+        required: true
+    },
+    totalPickups: {
+        type: Number,
+        required: true
     }
 }, { timestamps: true })
 
