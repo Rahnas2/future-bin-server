@@ -30,6 +30,7 @@ import collectorRouter from './adapters/routes/collector'
 import pickupRequestRouter from './adapters/routes/pickupRequest'
 import paymentRouter from './adapters/routes/payment'
 import reviewRouter from './adapters/routes/review'
+import scheduledPickupRouter from './adapters/routes/scheduledPickup'
 
 import { errorHandler } from './adapters/middleware/errorHandler';
 
@@ -54,6 +55,7 @@ app.use('/collector', collectorRouter)
 app.use('/api/pickup-requests', pickupRequestRouter)
 app.use('/api', paymentRouter)
 app.use('/api/reviews', reviewRouter)
+app.use('/api/scheduled-pickups', scheduledPickupRouter)
 
 
 //error handling middleware 

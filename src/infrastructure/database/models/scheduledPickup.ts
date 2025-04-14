@@ -13,7 +13,8 @@ const scheduledPickupSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'completed']
+        enum: ['pending', 'completed'],
+        default: 'pending'
     },
     completedAt: {
         type: Date,

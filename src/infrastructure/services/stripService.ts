@@ -6,6 +6,10 @@ import { INTERFACE_TYPE } from "../../utils/appConst";
 import { INotificationRepository } from "../../interfaces/repositories/INotificationRepository";
 import { ISocketService } from "../../interfaces/services/ISocketService";
 import { IPickupRequestRepository } from "../../interfaces/repositories/IPickupRequestRepository";
+import { ISubscriptionRepository } from "../../interfaces/repositories/ISubscriptionRepository";
+import { IScheduledPickupRepository } from "../../interfaces/repositories/IScheduledRepository";
+
+import { addDays, addWeeks, addMonths } from 'date-fns';
 
 @injectable()
 export class stripeService implements IStripService {
@@ -14,7 +18,10 @@ export class stripeService implements IStripService {
 
     constructor(@inject(INTERFACE_TYPE.notificationRepository) private notificationRepository: INotificationRepository,
         @inject(INTERFACE_TYPE.SocketService) private SocketService: ISocketService,
-    @inject(INTERFACE_TYPE.pickupRequestRepository) private pickupRequestRepository: IPickupRequestRepository) {
+        @inject(INTERFACE_TYPE.pickupRequestRepository) private pickupRequestRepository: IPickupRequestRepository,
+        @inject(INTERFACE_TYPE.subscriptionRepositoy) private subscriptionRepositoy: ISubscriptionRepository,
+        @inject(INTERFACE_TYPE.scheduledPickupRepository) private scheduledPickupRepository: IScheduledPickupRepository
+    ) {
         this.stripe = new Stripe(process.env.STRIPE_SECRET as string);
     }
 
@@ -83,6 +90,7 @@ export class stripeService implements IStripService {
             process.env.STRIPE_WEBHOOK_SECRET!
         );
 
+        console.log('webhook event ', event)
         switch (event.type) {
             case 'checkout.session.completed':
                 await this.handleCheckoutCompleted(event.data.object);
@@ -135,6 +143,7 @@ export class stripeService implements IStripService {
         const userId = paymentIntent.metadata.userId
         if (!userId) throw new Error("User ID not found in metadata");
 
+        console.log('payment success ', paymentIntent)
         // Create notification
         const notification = await this.notificationRepository.create({
             userId,
@@ -144,6 +153,50 @@ export class stripeService implements IStripService {
 
         // Send real-time notification
         this.SocketService.sentNotification(userId, 'new_notification', notification)
+
+        // Check if the payment is for a pickup request
+        const pickupRequest = await this.pickupRequestRepository.findOne({ paymentIntentId: paymentIntent.id });
+        if (!pickupRequest) return;
+
+        // Update pickup request status to confirmed
+        await this.pickupRequestRepository.findByIdAndUpdate(pickupRequest._id, {status: 'confirmed'})
+
+        // If the request is a subscription, create scheduled pickups
+        if (pickupRequest.type === 'subscription' && pickupRequest.subscriptionPlanId) {
+            const subscription = await this.subscriptionRepositoy.findById(pickupRequest.subscriptionPlanId);
+            if (!subscription) throw new Error("Subscription not found");
+
+            const frequency = subscription.frequency;
+            const totalPickups = subscription.totalPickups;
+            const startDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000)
+
+            // Generate scheduled pickup dates based on frequency
+            const scheduledPickups = Array.from({ length: totalPickups }, (_, index) => {
+                let scheduledDate: Date;
+                switch (frequency) {
+                    case 'daily':
+                        scheduledDate = addDays(startDate, index);
+                        break;
+                    case 'weekly': 
+                        scheduledDate = addWeeks(startDate, index);     
+                        break;
+                    case 'monthly':
+                        scheduledDate = addMonths(startDate, index);
+                        break;
+                    default:
+                        throw new Error(`Invalid frequency: ${frequency}`);
+                }
+
+                return {
+                    pickupRequestId: pickupRequest._id,
+                    scheduledDate,
+                    status: 'pending',
+                }
+            })
+            console.log('scheduledPickups array ', scheduledPickups)
+            const response = await this.scheduledPickupRepository.createMany(scheduledPickups)
+            console.log('response insert many ', response)
+        }
     }
 
     private async handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
@@ -172,7 +225,7 @@ export class stripeService implements IStripService {
                 refundId: refund.id,
                 refundedAt: new Date(refund.created * 1000)
             }
-            await this.pickupRequestRepository.findByIdAndUpdate(request._id, {refund: data});
+            await this.pickupRequestRepository.findByIdAndUpdate(request._id, { refund: data });
         }
     }
 

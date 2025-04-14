@@ -3,7 +3,7 @@ export interface Subscription {
     name: string,
     price: string,
     description: string,
-    features: string[],
+    totalPickups: number,
     frequency: "daily" | "weekly" | "monthly",
-    totalPickups: number
+    features: string[],
 }

@@ -41,8 +41,8 @@ export interface OnDemandPickupRequest extends BasePickupRequest<'on-demand'> {
 export interface SubscriptionPickupRequest extends BasePickupRequest<'subscription'> {
     subscriptionPlanId: string;
     subscriptionPlanName: string;
-    totalPickups: string,
-    completedPickups: string
+    totalPickups: number,
+    completedPickups: number
 }
 
 export type PickupRequest = OnDemandPickupRequest | SubscriptionPickupRequest;

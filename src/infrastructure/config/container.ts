@@ -50,6 +50,8 @@ import { reviewController } from "../../adapters/controllers/reviewController";
 import { reviewInteractor } from "../../interactors/reviewInteractor.ts";
 import { reveiwRepository } from "../database/repositories/reviewRepository";
 import { scheduledPickupRepository } from "../database/repositories/scheduledPickupRepository";
+import { scheduledPickupInteractor } from "../../interactors/scheduledPickupInteractor";
+import { scheduledPickupController } from "../../adapters/controllers/scheduledPickupController";
 
 const container = new Container()
 
@@ -97,6 +99,7 @@ container.bind(INTERFACE_TYPE.chatInteractor).to(chatInteractor)
 container.bind(INTERFACE_TYPE.wasteTypeInteractor).to(wasteTypeInteractor)
 container.bind(INTERFACE_TYPE.paymentInteractor).to(paymentInteractor)
 container.bind(INTERFACE_TYPE.reviewInteractor).to(reviewInteractor)
+container.bind(INTERFACE_TYPE.scheduledPickupInteractor).to(scheduledPickupInteractor)
 
 
 //controllers
@@ -114,6 +117,7 @@ container.bind(INTERFACE_TYPE.paymentController).to(paymentController)
 container.bind(INTERFACE_TYPE.cloudinaryController).to(cloudinaryController)
 container.bind(INTERFACE_TYPE.webhookController).to(webhookController)
 container.bind(INTERFACE_TYPE.reviewController).to(reviewController)
+container.bind(INTERFACE_TYPE.scheduledPickupController).to(scheduledPickupController)
 
 
 //middlewares

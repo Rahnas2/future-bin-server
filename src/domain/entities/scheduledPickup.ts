@@ -1,6 +1,6 @@
 export interface scheduledPickup {
     pickupRequestId: string,
-    scheduledDate: string,
+    scheduledDate: Date,
     status: string,
-    completedAt: string
+    completedAt: Date
 }

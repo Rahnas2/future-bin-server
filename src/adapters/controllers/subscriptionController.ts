@@ -60,14 +60,14 @@ export  class subscriptionController {
 
         try {
             console.log('not coming heree ', req.body)
-            const { id, ...data} = req.body
+            const { _id, ...data} = req.body
             
-            if(!id){
+            if(!_id){
                 res.status(400).json({message: 'id is missing'})
                 return
             }
 
-            const result = await this.subscriptionInteractor.editSubscription(id, data)
+            const result = await this.subscriptionInteractor.editSubscription(_id, data)
 
             res.status(200).json({message: 'success', subscription: result})
         } catch (error) {

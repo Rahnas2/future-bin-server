@@ -15,7 +15,7 @@ export interface ISubscriptionRepository extends IBaseRepository<ISubscriptionDo
 
     // addSubscription(data: Subscription): Promise<Subscription>
 
-    updateSubscriptionData(id: string, updatedData: Partial<editSubscriptionDto['updatedData']>): Promise<Subscription | null>
+    updateSubscriptionData(id: string, updatedData: Partial<Subscription>): Promise<Subscription | null>
 
 
     addNewFeatures(id: string, newFeatures: string[]): Promise<Subscription | null>

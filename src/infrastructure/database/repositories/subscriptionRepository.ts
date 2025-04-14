@@ -34,7 +34,7 @@ export class subscriptionRepositoy extends BaseRepository<ISubscriptionDocument>
     // }
 
     //update subsction 
-    async updateSubscriptionData(id: string, updatedData: Partial<editSubscriptionDto["updatedData"]>): Promise<Subscription | null> {
+    async updateSubscriptionData(id: string, updatedData: Partial<Subscription>): Promise<Subscription | null> {
         return await subscriptionModel.findByIdAndUpdate(id,
             {
                 $set: updatedData

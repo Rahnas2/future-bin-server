@@ -67,6 +67,16 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
         }
     }
 
+    //create multiple document 
+    async createMany(data: Partial<T>[]): Promise<void> {
+        try {
+            const result = await this.model.insertMany(data);
+            console.log('result of insert many ', result)
+        } catch (error) {
+            throw new DatabaseError('Database error -> ' + error);
+        }
+    }
+
     async findByIdAndUpdate(id: string, data: Partial<T>): Promise<T> {
         try {
             const result = await this.model.findByIdAndUpdate(id, {$set: data}, {new: true})

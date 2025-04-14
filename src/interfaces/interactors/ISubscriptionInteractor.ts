@@ -7,5 +7,5 @@ export interface ISubscriptionInteractor {
     fetchSubscriptionById(id: string) : Promise<ISubscriptionDocument>
     addSubscription(data: Subscription): Promise<Subscription>
     deleteSubscription(id: string): Promise<void>
-    editSubscription(id: string, data: editSubscriptionDto): Promise<Subscription | null>
+    editSubscription(id: string, data: Subscription): Promise<Subscription | null>
 }

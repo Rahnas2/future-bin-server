@@ -50,7 +50,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
         //create request and store _id
         const requestId = await this.pickupRequestRepository.createRequest(requestData)
-
+        console.log('user ids ', usersIds)
         // Assigning request notification to near collectors
         usersIds.forEach(userId => {
             this.SocketService.sentNotification(userId, 'new-request', requestId)

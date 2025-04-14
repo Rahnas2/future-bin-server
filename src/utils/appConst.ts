@@ -1,8 +1,4 @@
-import { reviewController } from "../adapters/controllers/reviewController";
-import { webhookController } from "../adapters/controllers/webhookController";
-import { reveiwRepository } from "../infrastructure/database/repositories/reviewRepository";
-import { scheduledPickupRepository } from "../infrastructure/database/repositories/scheduledPickupRepository";
-import { reviewInteractor } from "../interactors/reviewInteractor.ts";
+
 
 
 export const INTERFACE_TYPE = {
@@ -23,6 +19,7 @@ export const INTERFACE_TYPE = {
     cloudinaryController: Symbol.for('cloudinaryController'),
     webhookController: Symbol.for('webhookController'),
     reviewController: Symbol.for('reviewController'),
+    scheduledPickupController: Symbol.for('scheduledPickupController'),
     
 
     //interactors 
@@ -38,6 +35,7 @@ export const INTERFACE_TYPE = {
     wasteTypeInteractor: Symbol.for('wasteTypeInteractor'),
     paymentInteractor: Symbol.for('paymentInteractor'),
     reviewInteractor: Symbol.for('reviewInteractor'),
+    scheduledPickupInteractor: Symbol.for('scheduledPickupInteractor'),
 
     //repositories
     redisRepository: Symbol.for("redisRepository"),

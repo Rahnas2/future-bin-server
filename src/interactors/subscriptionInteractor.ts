@@ -39,29 +39,37 @@ export class subscriptionInteractor implements ISubscriptionInteractor {
         await this.subscriptionRepositoy.deleteById(id)
     }
 
-    async editSubscription(id: string, data: editSubscriptionDto): Promise<Subscription | null> {
-        const { updatedData, features } = data
-        console.log('updated data ', updatedData)
+    async editSubscription(id: string, data: Partial<Subscription>): Promise<Subscription | null> {
+        // const { updatedData, features } = data
+        // console.log('updated data ', updatedData)
 
         //check a subscription exist with the same name
-        if (updatedData && updatedData.name) {
-            const isExist = await this.subscriptionRepositoy.findSubscriptionByName(updatedData.name)
-            if (isExist) {
-                console.log('here ', isExist)
-                throw new conflictError(`${updatedData.name} already exist`)
+        // if (updatedData && updatedData.name) {
+        //     const isExist = await this.subscriptionRepositoy.findSubscriptionByName(updatedData.name)
+        //     if (isExist) {
+        //         console.log('here ', isExist)
+        //         throw new conflictError(`${updatedData.name} already exist`)
+        //     }
+        // }
+
+        // console.log('features ', features)
+        // //update basic details 
+        // if (updatedData) {
+        //     await this.subscriptionRepositoy.updateSubscriptionData(id, updatedData)
+        // }
+
+        // if (features) {
+        //     await this.subscriptionRepositoy.overrideFeatures(id, features)
+        // }
+        console.log('data', data)
+        if(data && data.name){
+            const result = await this.subscriptionRepositoy.findSubscriptionByName(data.name)
+            console.log('result here', result)
+            if(result && result._id?.toString() !== id){
+                throw new conflictError(`${data.name} already exist`)
             }
         }
 
-        console.log('features ', features)
-        //update basic details 
-        if (updatedData) {
-            await this.subscriptionRepositoy.updateSubscriptionData(id, updatedData)
-        }
-
-        if (features) {
-            await this.subscriptionRepositoy.overrideFeatures(id, features)
-        }
-
-        return await this.subscriptionRepositoy.updateSubscriptionData(id, {})
+        return await this.subscriptionRepositoy.findByIdAndUpdate(id, data)
     }
 }
