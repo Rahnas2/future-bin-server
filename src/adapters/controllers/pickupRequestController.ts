@@ -39,15 +39,17 @@ export class pickupRequestController {
 
     //get all neaby pending pickup request for collectors
     onGetNearPickupRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        console.log('hello ', req._id)
         try {
             const id = req._id
-
+            
             if (!id) {
                 res.status(400).json({ message: 'id is missing' })
                 return
             }
 
             const requests = await this.pickupRequestInteractor.getPickupRequestByCollectorId(id)
+            console.log('pickup reuqest ', requests)
             res.status(200).json({ message: 'success', requests })
         } catch (error) {
             next(error)
@@ -134,14 +136,22 @@ export class pickupRequestController {
         }
     }
 
-
-    onCompleteRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    onGetPickupRequestsByTypeAndStatus = async (req: AuthRequest, res: Response, next: NextFunction) => {
         try {
+            const { type, status } = req.params
 
+            const role = req.role
+            const userId = req._id
+
+            const pickupRequests = await this.pickupRequestInteractor.getPickupRequestsByTypeAndStatus(type, status, role!, userId!)
+
+            res.status(200).json({message: 'success', pickupRequests})
         } catch (error) {
-
+            next(error)
         }
     }
+
+    
 
     //cancel pickup request for both user and collector
     onCacelRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -155,6 +165,18 @@ export class pickupRequestController {
             next(error)
         }
 
+    }
+
+    onCompleteRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const { id } = req.body
+
+            await this.pickupRequestInteractor.completeRequest(id)
+
+            res.status(200).json({message: 'success'})
+        } catch (error) {
+            next(error)
+        }
     }
 
 }

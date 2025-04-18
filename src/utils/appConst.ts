@@ -1,3 +1,4 @@
+import { collectorInteractor } from "../interactors/collectorInteractor";
 
 
 
@@ -26,6 +27,7 @@ export const INTERFACE_TYPE = {
     otpInteractor: Symbol.for("otpInteractor"),
     authInteractor: Symbol.for("authInteractor"),
     userInteractor: Symbol.for('userInteractor'),
+    collectorInteractor: Symbol.for('collectorInteractor'),
     adminInteractor: Symbol.for('adminInteractor'),
     userManagmentInteractor: Symbol.for('userManagmentInteractor'),
     subscriptionInteractor: Symbol.for('subscriptionInteractor'),

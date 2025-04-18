@@ -40,34 +40,12 @@ const collectorSchema = new Schema(
         },
         status: {
             type: String,
-            enum: ["active", "inactive"],
-            default: "inactive",
+            enum: ["active", "in-active"],
+            default: "in-active",
         },
-        wallet: {
-            balance: {
-                type: Number,
-                default: 0,
-            },
-            transactions: [
-                {
-                    amount: {
-                        type: Number,
-                        required: true,
-                    },
-                    type: {
-                        type: String,
-                        enum: ["credit", "debit"],
-                        required: true,
-                    },
-                    discription: {
-                        type: String
-                    },
-                    date: {
-                        type: Date,
-                        default: Date.now,
-                    },
-                },
-            ],
+        stripeAccountId: {
+            type: String,
+            default: null,
         },
     },
     {

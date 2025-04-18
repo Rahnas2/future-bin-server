@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, Types, model } from "mongoose";
 import { IPickupeRequestDocument } from "../../../interfaces/documents/IPickupRequestDocument";
 const { ObjectId } = Schema.Types;
 
@@ -121,18 +121,28 @@ const pickupRequestSchema = new Schema({
     paymentIntentId: {
         type: String
     },
-    subscriptionPlanId: {
-        type: ObjectId,
-        ref: "subscriptions"
-    },
-    subscriptionPlanName: {
-        type: String,
-    },
-    totalPickups: {
-        type: Number
-    },
-    completedPickups: {
-        type: Number
+    subscription: {
+        planId: {
+            type: Types.ObjectId
+        },
+        name: {
+            type: String
+        },
+        totalPickups: {
+            type: Number
+        },
+        completedPickups: {
+            type: Number
+        },
+        frequency: {
+            type: String
+        },
+        startDate: {
+            type: Date
+        },
+        endDate: {
+            type: Date
+        }
     },
     paymentStatus: {
         type: String,

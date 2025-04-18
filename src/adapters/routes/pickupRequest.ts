@@ -10,16 +10,20 @@ const controller = container.get<pickupRequestController>(INTERFACE_TYPE.pickupR
 const router = express.Router();
 
 router.route('/')
-.post(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onCreatePickupRequest)    //create new pickup request 
-.put(AuthMiddleware.validateJwt,  AuthMiddleware.restrictTo('resident', 'collector'), controller.onUpdatePickupRequest)  // update existing pickup request
+    .post(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onCreatePickupRequest)    //create new pickup request 
+    .put(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.onUpdatePickupRequest)  // update existing pickup request
+
+router.get('/user/:status', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.onUserPickupRequestHistoryByStatus)
+router.put('/cancel', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.onCacelRequest)
+router.put('/complete', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onCompleteRequest)
+
+router.get('/collector/near', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onGetNearPickupRequest)
+router.patch('/collector/accept', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onAcceptRequest)
 
 router.get('/:id', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.ongetPickupRequestById)
+router.get('/:type/:status', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector', 'resident'), controller.onGetPickupRequestsByTypeAndStatus)
 
-router.get('/user/:status',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.onUserPickupRequestHistoryByStatus)
-router.put('/cancel',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.onCacelRequest)
 
-router.get('/collector/near',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onGetNearPickupRequest)
-router.patch('/collector/accept',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'),  controller.onAcceptRequest)
 
 
 

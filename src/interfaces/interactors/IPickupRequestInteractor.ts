@@ -12,6 +12,8 @@ export interface IPickupRequestInteractor {
 
     getPickupRequestById(id: string): Promise<PickupRequest>
 
+    getPickupRequestsByTypeAndStatus(type: string, status: string, role: string, userId: string): Promise<PickupRequest []>
+
     acceptRequest(collectorId: string, requestId: string, collectorName: string): Promise<void>
 
     updatePickupRequest(id: string, data: Partial<PickupRequest>): Promise<IPickupeRequestDocument>
@@ -21,5 +23,7 @@ export interface IPickupRequestInteractor {
     updatePaymentStatus(id: string, paymentStatus: string): Promise<void>
 
     cancelRequest(id: string, role: 'resident' | 'collector', data: Partial<requestCancellationDto>): Promise<IPickupeRequestDocument>
+
+    completeRequest(id: string): Promise<IPickupeRequestDocument>
 
 }

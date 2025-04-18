@@ -43,18 +43,41 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
         return result._id.toString()
     }
 
+    async findCollectorRequestsByTypeAndStatus(collectorId: string, type: string, status: string): Promise<IPickupeRequestDocument[]> {
+        try {
+            const result = await this.model.find({ collectorId, type, status })
+            return result
 
-    async findPendingRequestsWithLocation(location: locationDto, maxDistance: number): Promise<PickupRequest[] | []> {
-        return await pickupRequestModel.find({
-            status: 'pending',
-            'address.location': {
-                $near: {
-                    $geometry: location,
-                    $maxDistance: maxDistance
+        } catch (error) {
+            throw new DatabaseError('data base error')
+        }
+    }
+
+    async findUserRequestsByTypeAndStatus(userId: string, type: string, status: string): Promise<IPickupeRequestDocument[]> {
+        try {
+            const reuslt = await this.model.find({ userId, type, status })
+            return reuslt
+        } catch (error) {
+            throw new DatabaseError('data base error')
+        }
+    }
+
+    async findPendingRequestsWithLocation(location: locationDto, maxDistance: number): Promise<PickupRequest[]> {
+        try {
+            return await this.model.find({
+                status: 'pending',
+                'address.location': {
+                    $near: {
+                        $geometry: location,
+                        $maxDistance: maxDistance
+                    }
                 }
-            }
-        }).sort({ createdAt: -1 })
-            .lean<PickupRequest[]>()
+            }).sort({ createdAt: -1 })
+                .lean<PickupRequest[]>()
+        } catch (error) {
+            throw new DatabaseError(`data base error ${error}`)
+        }
+
     }
 
     async findRequestByIdAndUpdate(reqeustId: string, updatedData: Partial<PickupRequest>): Promise<PickupRequest> {
@@ -81,7 +104,7 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
         }
     }
 
-    async findReqeustHistoryByUserIdAndStatus(userId: string, status: 'all' | pickupRequestStatusDto, page: number, limit: number): Promise<{requests: PickupRequest[] , total: number }> {
+    async findReqeustHistoryByUserIdAndStatus(userId: string, status: 'all' | pickupRequestStatusDto, page: number, limit: number): Promise<{ requests: PickupRequest[], total: number }> {
         try {
             const query: { userId: string, status?: pickupRequestStatusDto } = { userId }
 
@@ -104,7 +127,7 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
         }
     }
 
-    async findReqeustHistoryByCollectorIdAndStatus(collectorId: string, status: 'all' | pickupRequestStatusDto, page: number, limit: number): Promise<{requests: PickupRequest[] , total: number }> {
+    async findReqeustHistoryByCollectorIdAndStatus(collectorId: string, status: 'all' | pickupRequestStatusDto, page: number, limit: number): Promise<{ requests: PickupRequest[], total: number }> {
         try {
 
             const query: { collectorId: string, status?: pickupRequestStatusDto } = { collectorId }
@@ -117,9 +140,9 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
 
             const [requests, total] = await Promise.all([
                 this.model.find(query)
-                .skip(skip)
-                .limit(limit)
-                .sort({ createdAt: -1 }), 
+                    .skip(skip)
+                    .limit(limit)
+                    .sort({ createdAt: -1 }),
                 this.model.countDocuments(query)
             ])
 

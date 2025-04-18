@@ -27,9 +27,9 @@ export class paymentController {
 
     OncreatePaymentSession = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { amount, userId } = req.body
+            const { amount, userId, pickupRequestId } = req.body
             console.log('amount ', amount)
-            const session = await this.stripeService.createPaymentSession(amount * 100, userId)
+            const session = await this.stripeService.createPaymentSession(amount * 100, userId, pickupRequestId)
             res.status(200).json({message: 'success', session})
         } catch (error) {
             next(error)

@@ -24,4 +24,12 @@ export class messagRepository extends BaseRepository<IMessageDocument> implement
             throw new DatabaseError('data base error')
         }
     }
+
+    async deleteByChatId(chatId: string): Promise<{ acknowledged: boolean, deletedCount: number }> {
+        try {
+            return await this.model.deleteMany({chatId})
+        } catch (error) {
+            throw new DatabaseError('data base error')
+        }
+    }
 }

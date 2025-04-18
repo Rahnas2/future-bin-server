@@ -12,7 +12,7 @@ export interface IUserManagmentInteractor {
 
     fetchCollectorDetails(userId: string): Promise<collectorFullDetailsDto>
 
-    acceptRequest(collectorId: string, name: string, email: string): Promise<void> 
+    acceptRequest(collectorId: string, name: string, email: string): Promise<void>
 
     rejectRequest(collectorId: string, name: string, email: string): Promise<void>
 }

@@ -7,70 +7,84 @@ import { InvalidCredentialsError, notFound } from "../domain/errors";
 import { ICollectorRepository } from "../interfaces/repositories/ICollectorRepository";
 import { collectorFullDetailsDto } from "../dtos/collectorFullDetailsDto";
 import { IEmailService } from "../interfaces/services/IEmailService";
+import { IStripService } from "../interfaces/services/IStripService";
 
 @injectable()
 export class userManagmentInteractor implements IUserManagmentInteractor {
 
-    constructor(@inject(INTERFACE_TYPE.userRepository) private userRepository: IUserRepository,
-        @inject(INTERFACE_TYPE.collectorRepoitory) private collectorRepository: ICollectorRepository,
-        @inject(INTERFACE_TYPE.emailService) private emailService: IEmailService
-    ) { }
+  constructor(@inject(INTERFACE_TYPE.userRepository) private userRepository: IUserRepository,
+    @inject(INTERFACE_TYPE.collectorRepoitory) private collectorRepository: ICollectorRepository,
+    @inject(INTERFACE_TYPE.emailService) private emailService: IEmailService,
+    @inject(INTERFACE_TYPE.stripeService) private stripeService: IStripService
+  ) { }
 
 
-    async fetchUsers(page: number, limit: number): Promise<{users: Partial<IUser>[], total: number}> {
-        return await this.userRepository.fetchAllUsers(page, limit)
+  async fetchUsers(page: number, limit: number): Promise<{ users: Partial<IUser>[], total: number }> {
+    return await this.userRepository.fetchAllUsers(page, limit)
+  }
+
+  async fetchCollectors(approvedStatus: string, page: number, limit: number): Promise<{ collectors: Partial<collectorFullDetailsDto>[], total: number }> {
+    const result = await this.collectorRepository.findAllCollectorsWithStatus(approvedStatus, page, limit)
+    console.log('result ', result)
+    return result
+  }
+
+  async fetchUserDetail(userId: string): Promise<IUser> {
+    const user = await this.userRepository.findById(userId)
+
+    if (!user) {
+      throw new notFound('user not found')
+    }
+    user['password'] = null
+
+    return user
+  }
+
+  async toggleStatus(userId: string) {
+    await this.userRepository.toggleUserStatus(userId)
+  }
+
+  async fetchCollectorDetails(userId: string): Promise<collectorFullDetailsDto> {
+    const user = await this.userRepository.findById(userId)
+
+    if (!user) {
+      throw new notFound('user not found')
     }
 
-    async fetchCollectors(approvedStatus: string, page: number, limit: number): Promise<{collectors: Partial<collectorFullDetailsDto>[], total: number}> {
-        const result =  await this.collectorRepository.findAllCollectorsWithStatus(approvedStatus, page, limit)
-        console.log('result ', result)
-        return result
+    if (user?.role !== 'collector') {
+      throw new InvalidCredentialsError('invalid role')
     }
 
-    async fetchUserDetail(userId: string): Promise<IUser> {
-        const user = await this.userRepository.findById(userId)
-
-        if (!user) {
-            throw new notFound('user not found')
-        }
-        user['password'] = null
-
-        return user
+    const collector = await this.collectorRepository.findCollectorDetails(userId)
+    if (!collector) {
+      throw new notFound('collector not found')
     }
 
-    async toggleStatus(userId: string) {
-        await this.userRepository.toggleUserStatus(userId)
-    }
+    collector['password'] = null
 
-    async fetchCollectorDetails(userId: string): Promise<collectorFullDetailsDto> {
-        const user = await this.userRepository.findById(userId)
+    return collector
+  }
 
-        if(!user){
-            throw new notFound('user not found')
-        }
+  // Approve Collector Request
 
-        if(user?.role !== 'collector') {
-            throw new InvalidCredentialsError('invalid role')
-        }
+  async acceptRequest(collectorId: string, name: string, email: string): Promise<void> {
+    const stripeAccountId = await this.stripeService.createConnectedAccount(collectorId, email);
 
-        const collector = await this.collectorRepository.findCollectorDetails(userId)
-        if(!collector) {
-            throw new notFound('collector not found')
-        }
+    await this.collectorRepository.findByIdAndUpdate(collectorId, {
+      approvalStatus: 'approved',
+      stripeAccountId,
+    });
+    await this.emailService.sentMail(email, name, 'approved');    
 
-        collector['password'] = null
+    const onboardingUrl = await this.stripeService.createOnboardingLink(stripeAccountId);
+    console.log('Onboarding URL:', onboardingUrl);
 
-        return collector
-    }
+  }
 
 
-    async acceptRequest(collectorId: string, name: string, email: string): Promise<void> {
-        await this.collectorRepository.updateCollectorRequestStatus(collectorId, 'accepted')
-        await this.emailService.sentMail(email, name, 'approved')
-    }
-
-    async rejectRequest(collectorId: string, name: string, email: string): Promise<void> {
-        await this.collectorRepository.updateCollectorRequestStatus(collectorId, 'rejected')
-        await this.emailService.sentMail(email, name, 'rejected')
-    }
+  // Reject Collector Request
+  async rejectRequest(collectorId: string, name: string, email: string): Promise<void> {
+    await this.collectorRepository.findByIdAndUpdate(collectorId, { approvalStatus: 'rejected' })
+    await this.emailService.sentMail(email, name, 'rejected')
+  }
 }

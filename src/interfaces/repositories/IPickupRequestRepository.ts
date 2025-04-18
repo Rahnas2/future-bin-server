@@ -9,7 +9,11 @@ export interface IPickupRequestRepository extends IBaseRepository<IPickupeReques
     checkRequestStatusById(id: string): Promise<{status: string}>
 
     createRequest(requestData: PickupRequest): Promise<string>
-    findPendingRequestsWithLocation(location: locationDto, maxDistance: number): Promise<PickupRequest[] | []>
+
+    findCollectorRequestsByTypeAndStatus(collectorId: string, type: string, status: string): Promise<IPickupeRequestDocument []>
+    findUserRequestsByTypeAndStatus(userId: string, type: string, status: string): Promise<IPickupeRequestDocument []>
+
+    findPendingRequestsWithLocation(location: locationDto, maxDistance: number): Promise<PickupRequest[]>
     // findRequestById(id: string): Promise<PickupRequest | null>
 
     findByUserIdAndStatusThenUpdate(userId: string, status: string, updatedData: Partial<PickupRequest>): Promise<void>

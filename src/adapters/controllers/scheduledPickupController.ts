@@ -36,7 +36,26 @@ export class scheduledPickupController {
 
             res.status(200).json({ message: 'Scheduled pickup completed successfully' });
         } catch (error) {
+            next(error)
+        }
+    }
 
+
+    onGetScheduledPickupsForTheRequest = async(req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { pickupRequestId } = req.params
+
+            if (!pickupRequestId) {
+                res.status(400).json({ message: 'pickup request ID missing' })
+                return
+            }
+
+            const scheduledPickups = await this.scheduledPickupInteractor.getScheduledPickupsForTheRequest(pickupRequestId)
+               
+            res.status(200).json({message: 'success', scheduledPickups})
+
+        } catch (error) {
+            next(error)
         }
     }
 }

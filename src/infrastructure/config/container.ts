@@ -52,6 +52,7 @@ import { reveiwRepository } from "../database/repositories/reviewRepository";
 import { scheduledPickupRepository } from "../database/repositories/scheduledPickupRepository";
 import { scheduledPickupInteractor } from "../../interactors/scheduledPickupInteractor";
 import { scheduledPickupController } from "../../adapters/controllers/scheduledPickupController";
+import { collectorInteractor } from "../../interactors/collectorInteractor";
 
 const container = new Container()
 
@@ -91,6 +92,7 @@ container.bind(INTERFACE_TYPE.scheduledPickupRepository).to(scheduledPickupRepos
 container.bind(INTERFACE_TYPE.authInteractor).to(authInteractor)
 container.bind(INTERFACE_TYPE.adminInteractor).to(adminInteractor)
 container.bind(INTERFACE_TYPE.userInteractor).to(userInteractor)
+container.bind(INTERFACE_TYPE.collectorInteractor).to(collectorInteractor)
 container.bind(INTERFACE_TYPE.userManagmentInteractor).to(userManagmentInteractor)
 container.bind(INTERFACE_TYPE.subscriptionInteractor).to(subscriptionInteractor)
 container.bind(INTERFACE_TYPE.pickupRequestInteractor).to(pickupRequestInteractor)

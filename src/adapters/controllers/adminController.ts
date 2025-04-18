@@ -3,7 +3,7 @@ import { inject, injectable } from "inversify";
 import { INTERFACE_TYPE } from "../../utils/appConst";
 import { IAdminteractor } from "../../interfaces/interactors/IAdminInteractor";
 
-// @injectable()
+@injectable()
 export class adminController {
 
     constructor(@inject(INTERFACE_TYPE.adminInteractor) private adminteractor: IAdminteractor) { }

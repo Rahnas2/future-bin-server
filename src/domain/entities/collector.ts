@@ -14,15 +14,5 @@ export interface ICollector {
     }
     approvalStatus: string;
     status: string;
-    wallet: {
-        balance: number;
-        transactions: {
-            amount: number,
-            type: string,
-            discription?: string,
-            date: Date
-        }
-    };
-    // createdAt: Date;
-    // updatedAt: Date;
+    stripeAccountId: string
 }

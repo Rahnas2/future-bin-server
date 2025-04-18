@@ -14,4 +14,6 @@ router.get('/collector', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('
 
 router.put('/:id/complete', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onCompleteScheduledPickup)
 
+router.get('/:pickupRequestId', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector', 'resident'), controller.onGetScheduledPickupsForTheRequest)
+
 export default router
