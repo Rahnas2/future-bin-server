@@ -51,6 +51,8 @@ router.post('/chat/delete-image',AuthMiddleware.validateJwt, AuthMiddleware.rest
 
 router.put('/payment-status',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'admin'), PaymentController.onConfirmPayment)
 
+router.get('/users/transactions', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onGetTransactionHistory)
+
 
 
 

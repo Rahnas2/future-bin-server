@@ -6,13 +6,17 @@ import { Forbidden, notFound } from "../domain/errors";
 import { IUser } from "../domain/entities/user";
 import { ICloudinaryService } from "../interfaces/services/ICloudinaryService";
 import { IHashingService } from "../interfaces/services/IHashingService";
+import { IPickupRequestRepository } from "../interfaces/repositories/IPickupRequestRepository";
+import { ITransactionRepository } from "../interfaces/repositories/ITransactionReporisoty";
+import { ITransactionDocument } from "../interfaces/documents/ITransactionDocument";
 
 @injectable()
 export class userInteractor implements IUserInteractor {
 
     constructor(@inject(INTERFACE_TYPE.userRepository) private userRepository: IUserRepository,
         @inject(INTERFACE_TYPE.cloudinaryService) private cloudinaryService: ICloudinaryService,
-        @inject(INTERFACE_TYPE.hashingService) private hashingService: IHashingService) { }
+        @inject(INTERFACE_TYPE.hashingService) private hashingService: IHashingService,
+        @inject(INTERFACE_TYPE.transactionRepository) private transactionRepository: ITransactionRepository) { }
 
     async getUserProfile(_id: string) {
         const user = await this.userRepository.findById(_id)
@@ -20,7 +24,7 @@ export class userInteractor implements IUserInteractor {
         if (!user) {
             throw new notFound('user not found')
         }
-        
+
         return user
     }
 
@@ -47,13 +51,13 @@ export class userInteractor implements IUserInteractor {
             throw new notFound('user not found')
         }
 
-        if(!user.password){
+        if (!user.password) {
             throw new notFound('password not found in db')
         }
 
         const passCheck = await this.hashingService.compare(currentPassword, user.password)
 
-        if(!passCheck){
+        if (!passCheck) {
             throw new Forbidden('current password is incorrect')
         }
 
@@ -62,4 +66,9 @@ export class userInteractor implements IUserInteractor {
         await this.userRepository.chagePassword(id, password)
 
     }
+
+    async getTransactionHistory(userId: string): Promise<ITransactionDocument []> {
+        return await this.transactionRepository.finByUserId(userId)
+    }
+
 }

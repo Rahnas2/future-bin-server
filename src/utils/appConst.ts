@@ -1,3 +1,4 @@
+import { transactionRepository } from "../infrastructure/database/repositories/transactionRepository";
 import { collectorInteractor } from "../interactors/collectorInteractor";
 
 
@@ -54,6 +55,7 @@ export const INTERFACE_TYPE = {
     wasteTypeRepository: Symbol.for('wasteTypeRepository'),
     reveiwRepository: Symbol.for('reveiwRepository'),
     scheduledPickupRepository: Symbol.for('scheduledPickupRepository'),
+    transactionRepository: Symbol.for('transactionRepository'),
 
     //services
     otpService: Symbol.for("otpService"),    

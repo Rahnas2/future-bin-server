@@ -15,9 +15,10 @@ export class userManagmentController {
 
             const page = parseInt(req.query.page as string) || 1
             const limit = parseInt(req.query.limit as string) || 10
+            const search = req.query.search?.toString() || ""
 
 
-            const {users, total} = await this.userManagmentInteratcor.fetchUsers(page, limit)
+            const {users, total} = await this.userManagmentInteratcor.fetchUsers(page, limit, search)
 
             console.log('users ', users)
 
@@ -60,10 +61,11 @@ export class userManagmentController {
 
             const page = parseInt(req.query.page as string) || 1
             const limit = parseInt(req.query.limit as string) || 10
+            const search = req.query.search?.toString() || ''
 
             const { approvedStatus } = req.query
 
-            const {collectors, total} = await this.userManagmentInteratcor.fetchCollectors(approvedStatus as string, page, limit)
+            const {collectors, total} = await this.userManagmentInteratcor.fetchCollectors(approvedStatus as string, page, limit, search)
 
             res.status(200).json({ message: 'success', collectors, currentPage: page, totalPages: Math.ceil(total / limit) })
         } catch (error) {

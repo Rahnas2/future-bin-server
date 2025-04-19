@@ -10,6 +10,8 @@ import { ISubscriptionRepository } from "../../interfaces/repositories/ISubscrip
 import { IScheduledPickupRepository } from "../../interfaces/repositories/IScheduledRepository";
 
 import { addDays, addWeeks, addMonths } from 'date-fns';
+import { ITransactionRepository } from "../../interfaces/repositories/ITransactionReporisoty";
+import { ICollectorRepository } from "../../interfaces/repositories/ICollectorRepository";
 
 @injectable()
 export class stripeService implements IStripService {
@@ -20,7 +22,9 @@ export class stripeService implements IStripService {
         @inject(INTERFACE_TYPE.SocketService) private SocketService: ISocketService,
         @inject(INTERFACE_TYPE.pickupRequestRepository) private pickupRequestRepository: IPickupRequestRepository,
         @inject(INTERFACE_TYPE.subscriptionRepositoy) private subscriptionRepositoy: ISubscriptionRepository,
-        @inject(INTERFACE_TYPE.scheduledPickupRepository) private scheduledPickupRepository: IScheduledPickupRepository
+        @inject(INTERFACE_TYPE.scheduledPickupRepository) private scheduledPickupRepository: IScheduledPickupRepository,
+        @inject(INTERFACE_TYPE.transactionRepository) private transactionRepository: ITransactionRepository,
+        @inject(INTERFACE_TYPE.collectorRepoitory) private collectorRepoitory: ICollectorRepository
     ) {
         this.stripe = new Stripe(process.env.STRIPE_SECRET as string);
     }
@@ -105,6 +109,9 @@ export class stripeService implements IStripService {
             case 'refund.updated':
                 await this.handleRefundSuccess(event.data.object);
                 break;
+            case 'account.updated':
+                await this.handleConnectedAccountUpdate(event.data.object)
+                break;
             default:
                 console.log(`Unhandled event type: ${event.type}`);
         }
@@ -135,13 +142,13 @@ export class stripeService implements IStripService {
         });
 
         //Update Pickup Request
-        if(isPaymentSuccess && pickupRequestId){
+        if (isPaymentSuccess && pickupRequestId) {
             const pickupRequest = await this.pickupRequestRepository.findById(pickupRequestId)
             const updatedPaidAmount = pickupRequest.paidAmount + amount
-            await this.pickupRequestRepository.findByIdAndUpdate(pickupRequestId, {paidAmount: updatedPaidAmount })
+            await this.pickupRequestRepository.findByIdAndUpdate(pickupRequestId, { paidAmount: updatedPaidAmount })
 
             //Send Payment Status To User
-            this.SocketService.sentNotification(pickupRequest.collectorId?.toString() as string, 'payment_status', {pickupRequestId, status: 'success'})
+            this.SocketService.sentNotification(pickupRequest.collectorId?.toString() as string, 'payment_status', { pickupRequestId, status: 'success' })
         }
 
         // Send real-time notification
@@ -158,7 +165,6 @@ export class stripeService implements IStripService {
         const userId = paymentIntent.metadata.userId
         if (!userId) throw new Error("User ID not found in metadata");
 
-        console.log('payment success ', paymentIntent)
         // Create notification
         const notification = await this.notificationRepository.create({
             userId,
@@ -174,7 +180,19 @@ export class stripeService implements IStripService {
         if (!pickupRequest) return;
 
         // Update pickup request status to confirmed
-        await this.pickupRequestRepository.findByIdAndUpdate(pickupRequest._id, {status: 'confirmed'})
+        await this.pickupRequestRepository.findByIdAndUpdate(pickupRequest._id, { status: 'confirmed' })
+
+        //Create Transaction Document 
+        const newTransaction = await this.transactionRepository.create({
+            paymentId: paymentIntent.id,
+            pickupRequestId: pickupRequest._id,
+            userId,
+            amount: paymentIntent.amount / 100,
+            currency: paymentIntent.currency,
+            type: 'debit',
+            paymentStatus: 'succeeded'
+        })
+        console.log('new transaction ', newTransaction)
 
         // If the request is a subscription, create scheduled pickups
         if (pickupRequest.type === 'subscription' && pickupRequest.subscription) {
@@ -192,8 +210,8 @@ export class stripeService implements IStripService {
                     case 'daily':
                         scheduledDate = addDays(startDate, index);
                         break;
-                    case 'weekly': 
-                        scheduledDate = addWeeks(startDate, index);     
+                    case 'weekly':
+                        scheduledDate = addWeeks(startDate, index);
                         break;
                     case 'monthly':
                         scheduledDate = addMonths(startDate, index);
@@ -216,7 +234,7 @@ export class stripeService implements IStripService {
                 startDate: startDate,
                 endDate: endDate
             }
-            await this.pickupRequestRepository.findByIdAndUpdate(pickupRequest._id, {subscription: updatedSubscription})
+            await this.pickupRequestRepository.findByIdAndUpdate(pickupRequest._id, { subscription: updatedSubscription })
         }
     }
 
@@ -235,42 +253,84 @@ export class stripeService implements IStripService {
 
         // Send real-time notification
         this.SocketService.sentNotification(userId, 'new_notification', notification)
+
+        const pickupRequest = await this.pickupRequestRepository.findOne({ paymentIntentId: paymentIntent.id });
+        if (!pickupRequest) return
+        //Create Transaction Document 
+        await this.transactionRepository.create({
+            paymentId: paymentIntent.id,
+            pickupRequestId: pickupRequest._id,
+            userId,
+            amount: paymentIntent.amount / 100,
+            currency: paymentIntent.currency,
+            type: 'debit',
+            paymentStatus: 'failed'
+        })
     }
 
     // Handle Refund Succcess
     private async handleRefundSuccess(refund: Stripe.Refund) {
-        const request = await this.pickupRequestRepository.findOne({ paymentIntentId: refund.payment_intent });
+        const PikupRequest = await this.pickupRequestRepository.findOne({ paymentIntentId: refund.payment_intent });
 
-        if (request) {
+        if (PikupRequest) {
             const data = {
                 refunded: true,
                 refundedAmount: refund.amount / 100,
                 refundId: refund.id,
                 refundedAt: new Date(refund.created * 1000)
             }
-            await this.pickupRequestRepository.findByIdAndUpdate(request._id, { refund: data });
+            await this.pickupRequestRepository.findByIdAndUpdate(PikupRequest._id, { refund: data });
+
+            //Create Transaction Document 
+            await this.transactionRepository.create({
+                paymentId: refund.id,
+                pickupRequestId: PikupRequest._id,
+                userId: PikupRequest.userId,
+                amount: refund.amount / 100,
+                currency: refund.currency,
+                type: 'credit',
+                paymentStatus: 'succeeded'
+            })
         }
     }
+
+    //Handle Conncted Account Update 
+    private async handleConnectedAccountUpdate(account: Stripe.Account) {
+
+        //Check Connected Account Is Enabled
+        if(!account.capabilities || account.capabilities.transfers === 'inactive') return 
+
+        //Stripe Id
+        const stripeAccountId = account.id
+
+        //Find Collector With Stripe Id
+        const collector = await this.collectorRepoitory.findOne({stripeAccountId})
+        if(!collector) return
+        
+        //Update Stripe Account is Enabled
+        await this.collectorRepoitory.findByIdAndUpdate(collector._id, {isStripeEnabled: true})
+    }
+
 
     // Create Connected Account
     async createConnectedAccount(collectorId: string, email: string): Promise<string> {
         try {
             const account = await this.stripe.accounts.create({
                 type: 'express',
-                country: 'US', 
+                country: 'US',
                 capabilities: {
                     card_payments: { requested: true },
                     transfers: { requested: true },
                 },
             });
             console.log('country ', account);
-            return account.id;    
+            return account.id;
         } catch (error) {
             console.error('error when create connected account ', error);
             throw error; // Throw the error instead of returning an invalid ID
         }
     }
-    
+
     // Create Onboarding Link
     async createOnboardingLink(stripeAccountId: string): Promise<string> {
         try {
@@ -279,15 +339,15 @@ export class stripeService implements IStripService {
                 refresh_url: `${process.env.CLIENT_URL}/`,
                 return_url: `${process.env.CLIENT_URL}/`,
                 type: 'account_onboarding',
-                collect: 'currently_due', 
+                collect: 'currently_due',
             });
             return accountLink.url;
         } catch (error) {
             console.error('error creating onboarding link', error);
-            throw error; 
+            throw error;
         }
     }
-    
+
     // Create Transfer
     async createTransfer(data: { amount: number; currency: string; destination: string; transfer_group?: string }): Promise<Stripe.Transfer> {
         return this.stripe.transfers.create({

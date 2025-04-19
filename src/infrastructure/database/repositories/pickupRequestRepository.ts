@@ -152,5 +152,12 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
         }
     }
 
+    async findPaymentDetailsByUserId(userId: string): Promise<void> {
+        try {
+        } catch (error) {
+            throw new DatabaseError('database error')
+        }
+    }
+
 
 }

@@ -50,7 +50,9 @@ app.use(cookieParser())
 
 app.use(authRouter)
 app.use('/admin', adminRouter)
+
 app.use(userRouter)
+
 app.use('/api/collector', collectorRouter)
 app.use('/api/pickup-requests', pickupRequestRouter)
 app.use('/api', paymentRouter)

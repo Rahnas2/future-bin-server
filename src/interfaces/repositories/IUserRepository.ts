@@ -14,7 +14,7 @@ export interface IUserRepository extends BaseRepository<IUserDocument> {
     chagePassword(id: string, newPassword: string): Promise<IUser | null>
     toggleUserStatus(userId: string): Promise<void>
 
-    fetchAllUsers(page: number, limit: number): Promise<{users: Partial<IUser>[], total: number}>
+    fetchAllUsers(page: number, limit: number, search: string): Promise<{users: Partial<IUser>[], total: number}>
     
     findNearCollectorsId(location: locationDto, maxDistance: number): Promise<{_id: string, firstName: string, lastName: string}[] | null>
 }

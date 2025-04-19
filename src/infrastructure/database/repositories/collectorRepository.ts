@@ -5,9 +5,10 @@ import { ICollector } from "../../../domain/entities/collector";
 import { ICollectorRepository } from "../../../interfaces/repositories/ICollectorRepository";
 import userModel from "../models/user";
 import { collectorFullDetailsDto } from "../../../dtos/collectorFullDetailsDto";
-import { Types } from "mongoose";
+import { FilterQuery, Types } from "mongoose";
 import { BaseRepository } from "./baseRepository";
 import { ICollectorDocument } from "../../../interfaces/documents/ICollectorDocument";
+import { DatabaseError } from "../../../domain/errors";
 
 @injectable()
 export class collectorRepoitory extends BaseRepository<ICollectorDocument> implements ICollectorRepository {
@@ -18,53 +19,85 @@ export class collectorRepoitory extends BaseRepository<ICollectorDocument> imple
     }
 
     //find all collectors with  registeration request approval status
-    async findAllCollectorsWithStatus(approvedStatus: string, page: number, limit: number): Promise<{collectors: Partial<collectorFullDetailsDto>[], total: number }> {
-        const skip = (page - 1) * limit
-        const result = await userModel.aggregate([
-            {
-                $match: {
-                    role: 'collector'
+    async findAllCollectorsWithStatus(approvedStatus: string, page: number, limit: number, search: string): Promise<{ collectors: Partial<collectorFullDetailsDto>[], total: number }> {
+        try {
+            const query: FilterQuery<ICollector> = {
+                role: 'collector'
+            }
+            if (search.trim()) {
+                const regex = new RegExp(search, 'i');
+                query.$or = [
+                    { firstName: regex },
+                    { lastName: regex },
+                    { email: regex },
+                    { mobile: regex },
+                    { 'address.city': regex },
+                    { 'address.district': regex },
+                    { approvalStatus: regex },
+                    {
+                        $expr: {
+                            $regexMatch: {
+                                input: { $concat: ['$firstName', ' ', '$lastName'] },
+                                regex: search,
+                                options: 'i'
+                            }
+                        }
+                    }
+                ];
+            }
+
+            const skip = (page - 1) * limit
+            const result = await userModel.aggregate([
+                {
+                    $match: query
+                },
+                {
+                    $lookup: {
+                        from: "collectors",
+                        localField: "_id",
+                        foreignField: "userId",
+                        as: "details"
+                    }
+                },
+                {
+                    $unwind: '$details'
+                },
+                {
+                    $match: {
+                        'details.approvalStatus': approvedStatus
+                    }
+                },
+                {
+                    $project: {
+                        firstName: 1,
+                        lastName: 1,
+                        email: 1,
+                        mobile: 1,
+                        password: 1,
+                        image: 1,
+                        "address.district": 1,
+                        "address.city": 1,
+                        "details.status": 1
+                    }
+                },
+                {
+                    $facet: {
+                        data: [
+                            { $skip: skip },
+                            { $limit: limit },
+                        ],
+                        total: [{ $count: 'total' }]
+                    }
                 }
-            },
-            {
-                $lookup: {
-                    from: "collectors",
-                    localField: "_id",
-                    foreignField: "userId",
-                    as: "details"
-                }
-            },
-            {
-                $unwind: '$details'
-            },
-            {
-                $match: {
-                    'details.approvalStatus': approvedStatus
-                }
-            },
-            {
-                $project: {
-                    firstName: 1,
-                    lastName: 1,
-                    email: 1,
-                    mobile: 1,
-                    password: 1,
-                    image: 1,
-                    "address.district": 1,
-                    "address.city": 1,
-                    "details.status": 1
-                }
-            },
-            { $facet: {
-                data: [
-                  { $skip: skip },
-                  { $limit: limit },
-                ],
-                total: [{ $count: 'total' }]
-              }}
-        ])
-        return { collectors: result[0].data, total: result[0].total[0]?.total || 0 };
+            ])
+            return { collectors: result[0].data, total: result[0].total[0]?.total || 0 };
+        } catch (error) {
+            throw new DatabaseError('data base error')
+        }
     }
+
+
+
 
     //find collectors
     async findCollectorDetails(userId: string): Promise<collectorFullDetailsDto | null> {

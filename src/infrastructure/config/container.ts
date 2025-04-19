@@ -53,6 +53,7 @@ import { scheduledPickupRepository } from "../database/repositories/scheduledPic
 import { scheduledPickupInteractor } from "../../interactors/scheduledPickupInteractor";
 import { scheduledPickupController } from "../../adapters/controllers/scheduledPickupController";
 import { collectorInteractor } from "../../interactors/collectorInteractor";
+import { transactionRepository } from "../database/repositories/transactionRepository";
 
 const container = new Container()
 
@@ -86,6 +87,7 @@ container.bind(INTERFACE_TYPE.chatRepository).to(chatRepository),
 container.bind(INTERFACE_TYPE.wasteTypeRepository).to(wasteTypeRepository)
 container.bind(INTERFACE_TYPE.reveiwRepository).to(reveiwRepository)
 container.bind(INTERFACE_TYPE.scheduledPickupRepository).to(scheduledPickupRepository)
+container.bind(INTERFACE_TYPE.transactionRepository).to(transactionRepository)
 
 
 //interactors

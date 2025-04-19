@@ -47,6 +47,10 @@ const collectorSchema = new Schema(
             type: String,
             default: null,
         },
+        isStripeEnabled: {
+            type: Boolean, 
+            default: false
+        }
     },
     {
         timestamps: true, 

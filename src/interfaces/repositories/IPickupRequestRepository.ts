@@ -24,5 +24,5 @@ export interface IPickupRequestRepository extends IBaseRepository<IPickupeReques
 
     findReqeustHistoryByCollectorIdAndStatus(collectorId: string, status: 'all' | pickupRequestStatusDto, page: number, limit: number): Promise<{requests: PickupRequest[] , total: number }>
 
-
+    findPaymentDetailsByUserId(userId: string): Promise<void>
 }

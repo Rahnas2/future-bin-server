@@ -15,4 +15,5 @@ export interface ICollector {
     approvalStatus: string;
     status: string;
     stripeAccountId: string
+    isStripeEnabled: boolean
 }

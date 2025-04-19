@@ -6,7 +6,7 @@ import userModel from "../models/user";
 import { collectorFullDetailsDto } from "../../../dtos/collectorFullDetailsDto";
 import { locationDto } from "../../../dtos/locationDto";
 import { BaseRepository } from "./baseRepository";
-import { Document, Model, Types } from "mongoose";
+import { Document, FilterQuery, Model, Types } from "mongoose";
 import { IUserDocument } from "../../../interfaces/documents/IUserDocument";
 
 
@@ -50,10 +50,34 @@ export class userRepository extends BaseRepository<IUserDocument> implements IUs
     }
 
     //find all users
-    async fetchAllUsers(page: number, limit: number): Promise<{users: Partial<IUser>[], total: number }> {
+    async fetchAllUsers(page: number, limit: number, search: string): Promise<{ users: Partial<IUser>[], total: number }> {
+        const query: FilterQuery<IUser> = {
+            role: 'resident'
+        }
+        if (search.trim()) {
+            const regex = new RegExp(search, 'i');
+            query.$or = [
+                { firstName: regex },
+                { lastName: regex },
+                { email: regex },
+                { mobile: regex },
+                { 'address.city': regex },
+                { 'address.district': regex },
+                {
+                    $expr: {
+                      $regexMatch: {
+                        input: { $concat: ['$firstName', ' ', '$lastName'] },
+                        regex: search,
+                        options: 'i'
+                      }
+                    }
+                  }
+            ];
+        }
+
         const skip = (page - 1) * limit
         const [users, total] = await Promise.all([
-            userModel.find({ role: 'resident' }, {/* projection */ })
+            userModel.find(query)
                 .skip(skip)
                 .limit(limit)
                 .sort({ createdAt: -1 }),
