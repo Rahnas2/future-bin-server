@@ -49,8 +49,14 @@ export class stripeService implements IStripService {
         return { id: paymentIntent.id, clientSecret: paymentIntent.client_secret }
     }
 
+    //Retreive Payment Intent
+    async retrievePaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
+        const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId)
+        return paymentIntent
+    }
 
-    //create payment id
+
+    //Create Payment Session 
     async createPaymentSession(amount: number, userId: string, pickupRequestId: string) {
         const session = await this.stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -179,7 +185,10 @@ export class stripeService implements IStripService {
         if (!pickupRequest) return;
 
         // Update pickup request status to confirmed
-        await this.pickupRequestRepository.findByIdAndUpdate(pickupRequest._id, { status: 'confirmed' })
+        await this.pickupRequestRepository.findByIdAndUpdate(pickupRequest._id, { paymentStatus: 'succeeded', paidAmount: paymentIntent.amount / 100, status: 'confirmed' })
+
+        //Delete the Payment Notification 
+        await this.notificationRepository.deleteByRequestId(pickupRequest.id.toString())
 
         //Create Transaction Document 
         const newTransaction = await this.transactionRepository.create({

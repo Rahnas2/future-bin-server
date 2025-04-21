@@ -4,6 +4,7 @@ import { INTERFACE_TYPE } from "../../utils/appConst";
 import { IPaymentInteractor } from "../../interfaces/interactors/IPaymentInteractor";
 import { IPickupRequestInteractor } from "../../interfaces/interactors/IPickupRequestInteractor";
 import { IStripService } from "../../interfaces/services/IStripService";
+import { emailService } from "../../infrastructure/services/emailService";
 
 @injectable()
 export class paymentController {
@@ -46,5 +47,18 @@ export class paymentController {
         } catch (error) {
             next(error)
         }
+    }
+
+    onGetClientSecret = async(req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { requestId } = req.params
+
+            const clientSecret = await this.paymentInteractor.getClientSecret(requestId)
+            
+            res.status(200).json({message: 'success', clientSecret})
+        } catch (error) {
+            next(error)
+        }
+        
     }
 }

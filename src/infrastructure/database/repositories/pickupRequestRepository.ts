@@ -162,7 +162,6 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
 
     async aggregateAreaDataWithCollectorId(collectorId: string): Promise<{ city: string; total: number; pending: number; completed: number; cancelled: number; }[]> {
         try {
-            const data1 = await this.model.findOne({collectorId: collectorId})
             const data = await this.model.aggregate([
                 {
                     $match: { collectorId: new Types.ObjectId(collectorId) }
@@ -170,7 +169,7 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
                 {
                     $group: {
                         _id: '$address.city',
-                        total: { $sum: { $cond: [{ $eq: ['$status', 'accepted'] }, 1, 0] } },
+                        total: { $sum: { $cond: [{ $ne: ['$status', 'accepted'] }, 1, 0] } },
                         pending: { $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, 1, 0] } },
                         completed: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } },
                         cancelled: { $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] } },
@@ -187,8 +186,6 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
                     }
                 }
             ])
-            console.log('data 2nd ', data)
-            console.log('data 1 ', data1)
             return data
         } catch (error) {
             throw new DatabaseError('database error')

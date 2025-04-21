@@ -8,8 +8,8 @@ import { INotificationInteractor } from "../interfaces/interactors/INotification
 export class notificationInteractor implements INotificationInteractor {
     constructor(@inject(INTERFACE_TYPE.notificationRepository) private notificationRepository: INotificationRepository) {}
 
-    async fetchAllNotificationOfUser(userId: string){
-        return this.notificationRepository.finByUserId(userId)
+    async fetchAllNotificationOfReceiver(receiverId: string){
+        return this.notificationRepository.findByReceiverId(receiverId)
     }
 
     async deleteNotification(id: string): Promise<void> {

@@ -37,9 +37,7 @@ router.get('/subscriptions/:id',AuthMiddleware.validateJwt, AuthMiddleware.restr
 
 
 
-router.route('/notications')
-.get(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), NotificationController.onFetchAllNotificationOfUser)
-.delete(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), NotificationController.onDeleteNotifiation)
+
 
 router.get('/chat-list',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), ChatController.onGetChatList)
 

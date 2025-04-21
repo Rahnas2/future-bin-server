@@ -11,15 +11,15 @@ export class notificationController {
 
     constructor(@inject(INTERFACE_TYPE.notificationInteractor) private notificationInteractor: INotificationInteractor) {}
 
-    onFetchAllNotificationOfUser = async(req: AuthRequest, res: Response, next: NextFunction) => {
+    onFetchAllNotificationOfReceiver= async(req: AuthRequest, res: Response, next: NextFunction) => {
         try {
-            const userId = req._id
+            const receiverId = req._id
 
-            if(!userId){
+            if(!receiverId){
                 throw new notFound('user id not found')
             }
 
-            const notifications = await this.notificationInteractor.fetchAllNotificationOfUser(userId)
+            const notifications = await this.notificationInteractor.fetchAllNotificationOfReceiver(receiverId)
 
             res.status(200).json({message: 'success', notifications})
         } catch (error) {

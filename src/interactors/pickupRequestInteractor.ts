@@ -139,17 +139,13 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
                 receiverId: updatedRequest.userId,
                 type: "pickup_accepted" as notificationTypesDto,
                 message: `your ${request.type} is accepted by ${collectorName} please pay ${request.totalAmount} to confirm the request`,
-                linkUrl: paymentIntent.clientSecret,
                 requestId
             }
 
-            const result = await this.notificationRepository.create(data)
+            const notification = await this.notificationRepository.create(data)
 
             this.SocketService.sentNotification(updatedRequest.userId.toString(), 'pickup_accepted', {
-                id: result._id,
-                message: `your ${request.type} is accepted by ${collectorName} please pay ${request.totalAmount} to confirm the request`,
-                clientSecret: paymentIntent.clientSecret,
-                requestId
+                notification
             })
         }
 
