@@ -23,6 +23,7 @@ router.get('/profile',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('col
 router.route('/')
 .patch(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector', 'admin'), controller.onPatchUpdates)
 
+router.get('/onboarding-link/:stripeAccountId', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onGetOnboardingLink)
 
 router.put('/pickup-request/completed',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), PickupRequestController.onCompleteRequest)
 

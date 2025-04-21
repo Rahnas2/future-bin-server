@@ -16,6 +16,7 @@ import { IPickupeRequestDocument } from "../interfaces/documents/IPickupRequestD
 import { pickupRequestStatusDto } from "../dtos/pickupReqeustStatusDto";
 import { IChatRepository } from "../interfaces/repositories/IChatRepository";
 import { IMessageRepository } from "../interfaces/repositories/IMessageRepository";
+import { notificationTypesDto } from "../dtos/notificationTypeDto";
 
 
 @injectable()
@@ -76,6 +77,11 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
     }
 
+    // Area Data For Collecto r
+    async getAreaDataForCollector(collectorId: string): Promise<{ city: string; total: number; pending: number; completed: number; cancelled: number; }[]> {
+        return await this.pickupRequestRepository.aggregateAreaDataWithCollectorId(collectorId)
+    }
+
     async getPickupRequestsByTypeAndStatus(type: string, status: string, role: string, userId: string): Promise<PickupRequest[]> {
         if (role === 'collector') {
             return await this.pickupRequestRepository.findCollectorRequestsByTypeAndStatus(userId, type, status)
@@ -130,16 +136,16 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         if (paymentIntent) {
             //store notification in the database 
             const data = {
-                userId: updatedRequest.userId,
-                type: 'payment_request',
+                receiverId: updatedRequest.userId,
+                type: "pickup_accepted" as notificationTypesDto,
                 message: `your ${request.type} is accepted by ${collectorName} please pay ${request.totalAmount} to confirm the request`,
-                clientSecret: paymentIntent.clientSecret,
+                linkUrl: paymentIntent.clientSecret,
                 requestId
             }
 
             const result = await this.notificationRepository.create(data)
 
-            this.SocketService.sentNotification(updatedRequest.userId.toString(), 'payment-request', {
+            this.SocketService.sentNotification(updatedRequest.userId.toString(), 'pickup_accepted', {
                 id: result._id,
                 message: `your ${request.type} is accepted by ${collectorName} please pay ${request.totalAmount} to confirm the request`,
                 clientSecret: paymentIntent.clientSecret,
@@ -229,9 +235,9 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             const transferAmount = Math.round(collectorAmountUSD * 100);
 
             await this.stripService.createTransfer({
-                amount: transferAmount,    
+                amount: transferAmount,
                 currency: 'usd',
-                destination: collector[0].stripeAccountId,     
+                destination: collector[0].stripeAccountId,
                 transfer_group: pickupRequest._id.toString(),
             })
 

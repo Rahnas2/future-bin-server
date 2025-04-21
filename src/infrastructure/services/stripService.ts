@@ -119,10 +119,9 @@ export class stripeService implements IStripService {
 
     // Handle Payment Checkout Sessin Completed
     private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-        console.log('session payment completed ')
         const userId = session.metadata?.userId
         const pickupRequestId = session.metadata?.pickupRequestId
-        console.log('pickup requestId', pickupRequestId)
+        
         if (!userId) throw new Error("User ID not found in metadata");
 
         // Determine payment status
@@ -136,7 +135,7 @@ export class stripeService implements IStripService {
             : `Payment of ₹${amount} failed. Please try again`;
 
         const notification = await this.notificationRepository.create({
-            userId,
+            receiverId: userId,
             type: notificationType,
             message
         });
@@ -167,7 +166,7 @@ export class stripeService implements IStripService {
 
         // Create notification
         const notification = await this.notificationRepository.create({
-            userId,
+            receiverId: userId,
             type: 'payment_success',
             message: `Payment of ₹${paymentIntent.amount / 100} completed successfully`,
         })
@@ -246,8 +245,8 @@ export class stripeService implements IStripService {
 
         // Create notification
         const notification = await this.notificationRepository.create({
-            userId,
-            type: 'payment_failure',
+            receiverId: userId,
+            type: 'payment_failed',
             message: `Payment of ₹${paymentIntent.amount / 100} failed`,
         })
 

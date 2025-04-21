@@ -14,6 +14,8 @@ export interface IPickupRequestInteractor {
 
     getPickupRequestsByTypeAndStatus(type: string, status: string, role: string, userId: string): Promise<PickupRequest []>
 
+    getAreaDataForCollector(collectorId: string): Promise<{city: string, total: number, pending: number, completed: number, cancelled: number} []>
+
     acceptRequest(collectorId: string, requestId: string, collectorName: string): Promise<void>
 
     updatePickupRequest(id: string, data: Partial<PickupRequest>): Promise<IPickupeRequestDocument>

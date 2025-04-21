@@ -7,6 +7,7 @@ import { DatabaseError, notFound } from "../../../domain/errors";
 import { BaseRepository } from "./baseRepository";
 import { IPickupeRequestDocument } from "../../../interfaces/documents/IPickupRequestDocument";
 import { pickupRequestStatusDto } from "../../../dtos/pickupReqeustStatusDto";
+import { Types } from "mongoose";
 
 @injectable()
 export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocument> implements IPickupRequestRepository {
@@ -154,6 +155,41 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
 
     async findPaymentDetailsByUserId(userId: string): Promise<void> {
         try {
+        } catch (error) {
+            throw new DatabaseError('database error')
+        }
+    }
+
+    async aggregateAreaDataWithCollectorId(collectorId: string): Promise<{ city: string; total: number; pending: number; completed: number; cancelled: number; }[]> {
+        try {
+            const data1 = await this.model.findOne({collectorId: collectorId})
+            const data = await this.model.aggregate([
+                {
+                    $match: { collectorId: new Types.ObjectId(collectorId) }
+                },
+                {
+                    $group: {
+                        _id: '$address.city',
+                        total: { $sum: { $cond: [{ $eq: ['$status', 'accepted'] }, 1, 0] } },
+                        pending: { $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, 1, 0] } },
+                        completed: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } },
+                        cancelled: { $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] } },
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        city: '$_id',
+                        total: 1,
+                        pending: 1, 
+                        completed: 1,
+                        cancelled: 1
+                    }
+                }
+            ])
+            console.log('data 2nd ', data)
+            console.log('data 1 ', data1)
+            return data
         } catch (error) {
             throw new DatabaseError('database error')
         }

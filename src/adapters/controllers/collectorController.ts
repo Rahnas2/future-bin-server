@@ -39,4 +39,17 @@ export class collectorController {
             next(error)
         }
     }
+
+    //Generate on boarding link for conncted account
+    onGetOnboardingLink = async(req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { stripeAccountId } = req.params
+
+            const url = await this.collectorInteractor.generateOnboardingLink(stripeAccountId)
+
+            res.status(200).json({message: 'success', url})
+        } catch (error) {
+            next(error)
+        }
+    }
 }

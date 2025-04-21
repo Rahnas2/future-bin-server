@@ -42,7 +42,7 @@ export class pickupRequestController {
         console.log('hello ', req._id)
         try {
             const id = req._id
-            
+
             if (!id) {
                 res.status(400).json({ message: 'id is missing' })
                 return
@@ -112,6 +112,24 @@ export class pickupRequestController {
         }
     }
 
+    //Get Area Data For Collector 
+    onGetAreaDataForCollector = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const collectorId = req._id
+
+            if (!collectorId) {
+                res.status(400).json({ message: 'id is missing' })
+                return
+            }
+
+            const data = await this.pickupRequestInteractor.getAreaDataForCollector(collectorId)
+
+            res.status(200).json({message: 'success', data})
+        } catch (error) {
+            next(error)
+        }
+    }
+
     onUserPickupRequestHistoryByStatus = async (req: AuthRequest, res: Response, next: NextFunction) => {
         try {
             const id = req._id
@@ -145,13 +163,13 @@ export class pickupRequestController {
 
             const pickupRequests = await this.pickupRequestInteractor.getPickupRequestsByTypeAndStatus(type, status, role!, userId!)
 
-            res.status(200).json({message: 'success', pickupRequests})
+            res.status(200).json({ message: 'success', pickupRequests })
         } catch (error) {
             next(error)
         }
     }
 
-    
+
 
     //cancel pickup request for both user and collector
     onCacelRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -173,7 +191,7 @@ export class pickupRequestController {
 
             await this.pickupRequestInteractor.completeRequest(id)
 
-            res.status(200).json({message: 'success'})
+            res.status(200).json({ message: 'success' })
         } catch (error) {
             next(error)
         }

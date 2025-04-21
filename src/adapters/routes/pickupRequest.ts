@@ -19,6 +19,7 @@ router.put('/complete', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('c
 
 router.get('/collector/near', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onGetNearPickupRequest)
 router.patch('/collector/accept', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onAcceptRequest)
+router.get('/collector/area-data', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onGetAreaDataForCollector)
 
 router.get('/:id', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.ongetPickupRequestById)
 router.get('/:type/:status', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector', 'resident'), controller.onGetPickupRequestsByTypeAndStatus)

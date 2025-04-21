@@ -1,8 +1,10 @@
+import { notificationTypesDto } from "../../dtos/notificationTypeDto"
+
 export interface Notification {
-    userId: string,
-    type: string
+    receiverId: string,
+    type: notificationTypesDto,
     message: string,
     isRead: boolean
-    clientSecret?: string
+    linkUrl?: string
     requestId?: string
 }
