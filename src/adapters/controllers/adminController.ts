@@ -33,4 +33,33 @@ export class adminController {
             next(error)
         }
     }
+
+    //Dashboard Summary
+    onGetSummary = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            
+            const summary =  await this.adminteractor.getSummary()
+
+            res.status(200).json({message: 'success', summary})
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    // Dashboard Analytics 
+    onAnalytics = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { from, to } = req.query
+            if(!from || !to) {
+                res.status(400).json({message: 'date is missing '})
+                return
+            }
+
+            const analytics = await this.adminteractor.analytics(from as string, to as string)
+
+            res.status(200).json({message: 'success', analytics})
+        } catch (error) {    
+            next(error)
+        }    
+    }
 }

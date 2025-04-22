@@ -8,6 +8,10 @@ import { BaseRepository } from "./baseRepository";
 import { IPickupeRequestDocument } from "../../../interfaces/documents/IPickupRequestDocument";
 import { pickupRequestStatusDto } from "../../../dtos/pickupReqeustStatusDto";
 import { Types } from "mongoose";
+import { summaryDto } from "../../../dtos/summaryDto";
+import { requestTrendsDto } from "../../../dtos/requestTrendsDto";
+import { districtPerformaceDto } from "../../../dtos/districtPerformaceDto";
+import { topCitiesDto } from "../../../dtos/topAreaDto";
 
 @injectable()
 export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocument> implements IPickupRequestRepository {
@@ -180,7 +184,7 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
                         _id: 0,
                         city: '$_id',
                         total: 1,
-                        pending: 1, 
+                        pending: 1,
                         completed: 1,
                         cancelled: 1
                     }
@@ -192,5 +196,138 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
         }
     }
 
+    // PIckup Request Status Counts 
+    async getStatusCounts(): Promise<{ status: string, count: number }[]> {
+        try {
+            const data = await this.model.aggregate([
+                {
+                    $group: {
+                        _id: "$status",
+                        count: { $sum: 1 }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        status: '$_id',
+                        count: 1
+                    }
+                }
+            ])
+            return data
+        } catch (error) {
+            throw new DatabaseError(`database error ${error}`)
+        }
+    }
+
+    //Pickup Requst 
+    async findrequestTrends(from: Date, to: Date): Promise<requestTrendsDto []> {
+        try {
+            return await this.model.aggregate([
+                {
+                    $match: { createdAt: { $gte: from , $lte: to  }  }
+                },
+                {
+                    $group: {
+                        _id: '$createdAt',
+                        count: { $sum: 1 }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        date: '$_id',
+                        count: 1
+                    }
+                }
+            ])
+        } catch (error) {
+            throw new DatabaseError(`database error ${error}`)
+        }
+    }
+
+    async findDistrictPerformace(from: Date, to: Date, limit: number): Promise<districtPerformaceDto []> {
+        try {
+            return await this.model.aggregate([
+                {
+                    $match: { createdAt: { $gte: from , $lte: to  }  }
+                },
+                {
+                    $group: {
+                        _id: {
+                            district: '$address.district',
+                            city: '$address.city'
+                        },
+
+                        requestCount: { $sum: 1 }
+                    }
+                },
+                {
+                    $sort: {
+                        '_id.district': 1,
+                        requestCount: -1
+                    }
+                },
+                {
+                    $group: {
+                        _id: '$_id.district',
+                        districtRequestCount: { $sum: '$requestCount' },
+                        topCity: { $first: "$_id.city" },
+                        topCityCount: { $first: '$requestCount' }
+                    }
+                },
+                {
+                    $sort: {
+                        districtRequestCount: -1
+                    }
+                },
+                {
+                    $limit: limit
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        district: '$_id',
+                        districtRequestCount: 1,
+                        topCity: 1,
+                        topCityCount: 1
+                    }
+                }
+            ])
+        } catch (error) {
+            throw new DatabaseError(`database error ${error}`)
+        }
+    }
+
+    async findTopCitys(from: Date, to: Date, limit: number): Promise<topCitiesDto []> {
+        try {
+            return await this.model.aggregate([
+                {
+                    $match: { createdAt: { $gte: from , $lte: to  }  }
+                },
+                {
+                    $group: {
+                        _id: '$address.city',
+                        count: { $sum: 1 }
+                    }
+                },
+                {
+                    $sort: { count: -1 }
+                },
+                {
+                    $limit: limit
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        city: '$_id',
+                        count: 1
+                    }
+                }
+            ])
+        } catch (error) {
+            throw new DatabaseError(`database error ${error}`)
+        }
+    }
 
 }

@@ -1,4 +1,4 @@
-import { Model, Document } from "mongoose";
+import { Model, Document, FilterQuery } from "mongoose";
 import { IBaseRepository } from "../../../interfaces/repositories/IBaseRepository";
 import { DatabaseError, notFound } from "../../../domain/errors";
 
@@ -32,7 +32,7 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
     //find documents by user id
     async finByUserId(userId: string): Promise<T[]> {
         try {
-            const response = await this.model.find({userId: userId})
+            const response = await this.model.find({ userId: userId })
             return response
         } catch (error) {
             throw new DatabaseError('data base error')
@@ -40,10 +40,17 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
     }
 
     //find all documents
-    async findAll(page: number, limit: number): Promise<T[]> {
+    async findAll(page: number, limit: number, search?: string): Promise<T[]> {
         try {
+
+            let query: any = {};
+            if (search && search.trim()) {
+                const regex = new RegExp(search.trim(), 'i');
+                query = { name: regex };
+            }
+
             const skip = (page - 1) * limit
-            const response = await this.model.find().skip(skip).limit(limit).sort({createdAt: -1})
+            const response = await this.model.find(query).skip(skip).limit(limit).sort({ createdAt: -1 })
             return response
         } catch (error) {
             throw new DatabaseError('data base error')
@@ -79,8 +86,8 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
 
     async findByIdAndUpdate(id: string, data: Partial<T>): Promise<T> {
         try {
-            const result = await this.model.findByIdAndUpdate(id, {$set: data}, {new: true})
-            if(!result){
+            const result = await this.model.findByIdAndUpdate(id, { $set: data }, { new: true })
+            if (!result) {
                 throw new notFound('not found');
             }
             return result
@@ -91,10 +98,10 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
 
     async deleteById(id: string): Promise<boolean> {
         try {
-            const result  = await this.model.findByIdAndDelete(id)
+            const result = await this.model.findByIdAndDelete(id)
             return !!result
         } catch (error) {
-            throw new DatabaseError('data base error') 
+            throw new DatabaseError('data base error')
         }
     }
 }

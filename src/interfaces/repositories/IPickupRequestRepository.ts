@@ -1,6 +1,10 @@
 import { PickupRequest } from "../../domain/entities/picupRequest";
+import { districtPerformaceDto } from "../../dtos/districtPerformaceDto";
 import { locationDto } from "../../dtos/locationDto";
 import { pickupRequestStatusDto } from "../../dtos/pickupReqeustStatusDto";
+import { requestTrendsDto } from "../../dtos/requestTrendsDto";
+import { summaryDto } from "../../dtos/summaryDto";
+import { topCitiesDto } from "../../dtos/topAreaDto";
 import { IPickupeRequestDocument } from "../documents/IPickupRequestDocument";
 import { IBaseRepository } from "./IBaseRepository";
 
@@ -27,4 +31,12 @@ export interface IPickupRequestRepository extends IBaseRepository<IPickupeReques
     findPaymentDetailsByUserId(userId: string): Promise<void>
 
     aggregateAreaDataWithCollectorId(collectorId: string): Promise<{city: string, total: number, pending: number, completed: number, cancelled: number} []>
+
+    getStatusCounts(): Promise<{status: string, count: number} []>
+
+    findrequestTrends(from: Date, to: Date): Promise<requestTrendsDto []>
+
+    findDistrictPerformace(from: Date, to: Date, limit: number): Promise<districtPerformaceDto []>
+
+    findTopCitys(from: Date, to: Date, limit: number): Promise<topCitiesDto []>
 }

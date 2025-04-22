@@ -8,6 +8,7 @@ import { userManagmentController } from '../controllers/userManagmentCotroller'
 import { authMiddleware } from '../middleware/authMiddleware'
 import { subscriptionController } from '../controllers/subscriptionController'
 import { wasteTypeController } from '../controllers/wasteTypeController'
+import { Auth } from 'googleapis'
 
 const controller = container.get<adminController>(INTERFACE_TYPE.adminController)
 const userManagment = container.get<userManagmentController>(INTERFACE_TYPE.userManagmentController)
@@ -19,6 +20,11 @@ const router = express.Router()
 
 
 router.post('/login', controller.onLogin)
+
+//Dashboard 
+router.get('/dashboard/summary', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'),  controller.onGetSummary)
+router.get('/dashboard/analytics', controller.onAnalytics)      
+
 
 router.get('/fetch-users', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), userManagment.onFetchUsers)
 router.get('/user/view-detail', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), userManagment.onUserDetail)
@@ -42,6 +48,8 @@ router.route('/waste-types')
 .post(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), WasteTypeController.onAddWasteType)
 .put(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), WasteTypeController.onEditWasteType)
 .delete(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), WasteTypeController.onDeleteWasteType)
+
+
 
 
 export default router

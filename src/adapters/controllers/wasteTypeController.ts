@@ -12,8 +12,9 @@ export class wasteTypeController {
         try {
             const page = parseInt(req.query.page as string) || 1
             const limit = parseInt(req.query.limit as string) || 10
+            const search = req.query.search?.toString() || ""
 
-            const {wasteTypes, total} = await this.wasteTypeInteractor.getAllWasteTypes(page, limit)
+            const {wasteTypes, total} = await this.wasteTypeInteractor.getAllWasteTypes(page, limit, search)
             res.status(200).json({message: 'success', wasteTypes, currentPage: page, totalPages: Math.ceil(total / limit)})
         } catch (error) {
             next(error)    
