@@ -46,8 +46,8 @@ export class reviewController {
   //get all reviews 
   onGetAllReview = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const page = parseInt(req.query.page as string) || 1
       const limit = parseInt(req.query.limit as string) || 10
+      const page = parseInt(req.query.page as string) || 1
 
       const reviews = await this.reviewInteractor.getAllReviews(page, limit)
       res.status(200).json({ message: 'success', reviews })
@@ -59,7 +59,12 @@ export class reviewController {
   //get all reviews about app
   onGetAllAppReviews = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const reviews = await this.reviewInteractor.getAllAppReviews()
+
+      const limit = parseInt(req.query.limit as string) || 10
+      const lastId = req.query.lastId as string
+      console.log('limit  ', limit)
+      console.log('last id ', lastId)
+      const reviews = await this.reviewInteractor.getAllAppReviews(lastId, limit)
       console.log('reviews controller ', reviews)
       res.status(200).json({ reviews })
     } catch (error) {
@@ -107,12 +112,15 @@ export class reviewController {
     try {
       const userId = req._id
 
+      const limit = parseInt(req.query.limit as string) || 10
+      const lastId = req.query.lastId as string
+
       if (!userId) {
         res.status(400).json({ message: 'user id not found' })
         return
       }
 
-      const reviews = await this.reviewInteractor.getUserReviewsAboutCollectors(userId);
+      const reviews = await this.reviewInteractor.getUserReviewsAboutCollectors(userId, lastId, limit);
       res.status(200).json({ message: 'success', reviews });
     } catch (error) {
       next(error);
@@ -124,13 +132,17 @@ export class reviewController {
     try {
       const collectorId = req.params.collectorId;
 
+
+      const limit = parseInt(req.query.limit as string) || 10
+      const lastId = req.query.lastId as string
+
       // Verify the requesting collector can only see their own reviews
       if (req.role === 'collector' && req._id !== collectorId) {
         res.status(403).json({ message: 'Unauthorized to view these reviews' });
         return
       }
 
-      const reviews = await this.reviewInteractor.getCollectorReviews(collectorId);
+      const reviews = await this.reviewInteractor.getCollectorReviews(collectorId, lastId, limit);
       res.status(200).json({ message: 'success', reviews });
     } catch (error) {
       next(error);

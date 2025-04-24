@@ -49,16 +49,16 @@ export class reviewInteractor implements IReveiwInteractor{
         return this.reveiwRepository.userHasReviewedCollector(userId, collectorId)
     }
 
-    async getAllAppReviews(): Promise<{reviewDocument: IReviewDocument, userDocument: Partial<IUserDocument>} []> {
-        return this.reveiwRepository.findAllAppReviewsWithUserDetails()
+    async getAllAppReviews(lastId: string, limit: number): Promise<{reviewDocument: IReviewDocument, userDocument: Partial<IUserDocument>} []> {
+        return this.reveiwRepository.findAllAppReviewsWithUserDetails(lastId, limit)
     }
 
-    async getUserReviewsAboutCollectors(userId: string): Promise<IReviewDocument[]> {
-        return this.reveiwRepository.findByUserIdAndTypeCollector(userId)
+    async getUserReviewsAboutCollectors(userId: string, lastId: string, limit: number): Promise<{reviewDocument: IReviewDocument, userDocument: Partial<IUserDocument>} []> {
+        return this.reveiwRepository.findByUserIdAndTypeCollector(userId, lastId, limit)
     }
 
-    async getCollectorReviews(collectorId: string): Promise<IReviewDocument[]> {
-        return this.reveiwRepository.findByCollectorId(collectorId)
+    async getCollectorReviews(collectorId: string, lastId: string, limit: number): Promise<{reviewDocument: IReviewDocument, userDocument: Partial<IUserDocument>} []>{
+        return this.reveiwRepository.findByCollectorId(collectorId, lastId, limit)
     }
 
     async deleteReview(id: string): Promise<void> {

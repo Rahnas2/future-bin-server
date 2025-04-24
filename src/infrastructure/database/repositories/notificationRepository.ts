@@ -15,7 +15,7 @@ export class notificationRepository extends BaseRepository<INotificationDocument
 
     async findByReceiverId(receiverId: string): Promise<INotificationDocument[]> {
         try {
-            return await this.model.find({receiverId})
+            return await this.model.find({receiverId}).sort({createdAt: -1})
         } catch (error) {
             throw new DatabaseError('data base error ')
         }

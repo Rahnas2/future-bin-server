@@ -34,7 +34,7 @@ export class stripeService implements IStripService {
     async createPaymentIntent(amount: number, userId: string): Promise<{ id: string, clientSecret: string }> {
         const paymentIntent = await this.stripe.paymentIntents.create({
             amount,
-            currency: 'INR',
+            currency: 'usd',
             payment_method_types: ['card'],
             metadata: {
                 userId
@@ -62,7 +62,7 @@ export class stripeService implements IStripService {
             payment_method_types: ['card'],
             line_items: [{
                 price_data: {
-                    currency: 'INR',
+                    currency: 'usd',
                     product_data: { name: 'payment' },
                     unit_amount: amount
                 },
@@ -127,7 +127,7 @@ export class stripeService implements IStripService {
     private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         const userId = session.metadata?.userId
         const pickupRequestId = session.metadata?.pickupRequestId
-        
+
         if (!userId) throw new Error("User ID not found in metadata");
 
         // Determine payment status
@@ -137,8 +137,8 @@ export class stripeService implements IStripService {
         // Create notification
         const notificationType = isPaymentSuccess ? 'payment_success' : 'payment_failed';
         const message = isPaymentSuccess
-            ? `Payment of ₹${amount} completed successfully`
-            : `Payment of ₹${amount} failed. Please try again`;
+            ? `Payment of $${amount} completed successfully`
+            : `Payment of $${amount} failed. Please try again`;
 
         const notification = await this.notificationRepository.create({
             receiverId: userId,
@@ -256,7 +256,7 @@ export class stripeService implements IStripService {
         const notification = await this.notificationRepository.create({
             receiverId: userId,
             type: 'payment_failed',
-            message: `Payment of ₹${paymentIntent.amount / 100} failed`,
+            message: `Payment of $${paymentIntent.amount / 100} failed`,
         })
 
         // Send real-time notification
@@ -305,18 +305,19 @@ export class stripeService implements IStripService {
     //Handle Conncted Account Update 
     private async handleConnectedAccountUpdate(account: Stripe.Account) {
 
+        console.log('handle account update  ')
         //Check Connected Account Is Enabled
-        if(!account.capabilities || account.capabilities.transfers === 'inactive') return 
+        if (!account.capabilities || account.capabilities.transfers === 'inactive') return
 
         //Stripe Id
         const stripeAccountId = account.id
 
         //Find Collector With Stripe Id
-        const collector = await this.collectorRepoitory.findOne({stripeAccountId})
-        if(!collector) return
-        
+        const collector = await this.collectorRepoitory.findOne({ stripeAccountId })
+        if (!collector) return
+
         //Update Stripe Account is Enabled
-        await this.collectorRepoitory.findByIdAndUpdate(collector._id, {isStripeEnabled: true})
+        await this.collectorRepoitory.findByIdAndUpdate(collector._id, { isStripeEnabled: true })
     }
 
 
@@ -363,6 +364,22 @@ export class stripeService implements IStripService {
             currency: data.currency,
             destination: data.destination,
             transfer_group: data.transfer_group,
+        });
+    }
+
+    //Find Balance 
+    async checkBalance(stripeAccountId: string): Promise<Stripe.Balance> {
+        return await this.stripe.balance.retrieve({ stripeAccount: stripeAccountId })
+    }
+
+    //Create Payout 
+    async createPayout(stripeAccountId: string, amount: number): Promise<Stripe.Payout> {
+        return await this.stripe.payouts.create({
+            amount: Math.round(amount * 100),
+            currency: 'usd',
+            method: 'standard',
+        }, {
+            stripeAccount: stripeAccountId,
         });
     }
 

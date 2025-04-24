@@ -40,6 +40,24 @@ export class collectorController {
         }
     }
 
+    //collector earnings summary 
+    onGetMyEarnings = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const collectorId = req._id
+
+            if(!collectorId){
+                res.status(400).json({message: 'collector id is missing '})
+                return 
+            }
+
+            const summary = await this.collectorInteractor.getMyEarnings(collectorId)
+
+            res.status(200).json({message: 'success', summary})
+        } catch (error) {
+            next(error)
+        }
+    }
+
     //Generate on boarding link for conncted account
     onGetOnboardingLink = async(req: Request, res: Response, next: NextFunction) => {
         try {
@@ -48,6 +66,30 @@ export class collectorController {
             const url = await this.collectorInteractor.generateOnboardingLink(stripeAccountId)
 
             res.status(200).json({message: 'success', url})
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    onWithdrawBalance = async(req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const collectorId = req._id
+
+            const { amount } = req.body
+            if(!collectorId) {
+                res.status(400).json({message: 'collector id is missing '})
+                return 
+            }
+
+            if(!amount || amount < 100){
+                res.status(400).json({message: 'mininum withdrawal amount is 100'})
+                return 
+            }
+
+            const payout = await this.collectorInteractor.withdrawBalance(collectorId, amount)
+
+            res.status(200).json({message: 'success', payout})
+
         } catch (error) {
             next(error)
         }

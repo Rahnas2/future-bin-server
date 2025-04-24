@@ -23,13 +23,17 @@ router.get('/profile',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('col
 router.route('/')
 .patch(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector', 'admin'), controller.onPatchUpdates)
 
+router.get('/my-earnings', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onGetMyEarnings)
+
+router.post('/money/withdraw', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onWithdrawBalance)
+
 router.get('/onboarding-link/:stripeAccountId', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), controller.onGetOnboardingLink)
 
 router.put('/pickup-request/completed',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), PickupRequestController.onCompleteRequest)
 
 
 //payment 
-router.post('/create-payment-session',AuthMiddleware.validateJwt, PaymentController.OncreatePaymentSession)
+router.post('/create-payment-session',AuthMiddleware.validateJwt, PaymentController.OncreatePaymentSession)    
 
 
 

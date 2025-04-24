@@ -21,14 +21,11 @@ const notificationSchema = new Schema({
         type: Boolean,
         default: false
     },
-    linkUrl: {
-        type: String,
-    },
     requestId: {
         type: Types.ObjectId,
         ref: 'pickup_request'
     }
-}) 
+}, {timestamps: true}) 
 
 const notificationModel = model<INotificationDocument>('notification', notificationSchema)
 

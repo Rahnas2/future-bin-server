@@ -1,4 +1,5 @@
 export interface requestTrendsDto {
     date: string,
-    count: number
+    onDmand: number,
+    subscription: number
 }

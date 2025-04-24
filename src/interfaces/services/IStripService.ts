@@ -15,4 +15,8 @@ export interface IStripService {
     createOnboardingLink(stripeAccountId: string): Promise<string>    
     
     createTransfer(data: { amount: number; currency: string; destination: string; transfer_group?: string }): Promise<Stripe.Transfer>
+
+    checkBalance(stripeAccountId: string): Promise<Stripe.Balance>
+
+    createPayout(stripeAccountId: string, amount: number): Promise<Stripe.Payout>
 }     

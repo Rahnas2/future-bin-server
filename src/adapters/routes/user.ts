@@ -44,12 +44,12 @@ router.get('/chat-list',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('r
 router.route('/chat/messages')
 .post(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), ChatController.onSentMessage)
 .get(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), ChatController.onGetMessageHistory)
-router.get('/chat/message-between',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector'), ChatController.onGetMessagesBetweenTwoUser)
+router.get('/chat/message-between',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector', 'resident'), ChatController.onGetMessagesBetweenTwoUser)
 router.post('/chat/delete-image',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), CloudinaryController.onDeleteImage)
 
 router.put('/payment-status',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'admin'), PaymentController.onConfirmPayment)
 
-router.get('/users/transactions', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onGetTransactionHistory)
+router.get('/users/transactions', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.onGetTransactionHistory)
 
 
 

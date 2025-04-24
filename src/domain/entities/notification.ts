@@ -5,6 +5,5 @@ export interface Notification {
     type: notificationTypesDto,
     message: string,
     isRead: boolean
-    linkUrl?: string
     requestId?: string
 }

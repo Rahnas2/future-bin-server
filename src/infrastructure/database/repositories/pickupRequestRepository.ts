@@ -221,23 +221,33 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
     }
 
     //Pickup Requst 
-    async findrequestTrends(from: Date, to: Date): Promise<requestTrendsDto []> {
+    async findrequestTrends(from: Date, to: Date): Promise<requestTrendsDto[]> {
         try {
             return await this.model.aggregate([
                 {
-                    $match: { createdAt: { $gte: from , $lte: to  }  }
+                    $match: { createdAt: { $gte: from, $lte: to } }
                 },
                 {
                     $group: {
                         _id: '$createdAt',
-                        count: { $sum: 1 }
+                        onDemand: {
+                            $sum: {
+                                $cond: [{ $eq: ["$type", "on-demand"] }, 1, 0]
+                            }
+                        },
+                        subscription: {
+                            $sum: {
+                                $cond: [{ $eq: ["$type", "subscription"] }, 1, 0]
+                            }
+                        }
                     }
                 },
                 {
                     $project: {
                         _id: 0,
                         date: '$_id',
-                        count: 1
+                        onDemand: 1,
+                        subscription: 1
                     }
                 }
             ])
@@ -246,11 +256,11 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
         }
     }
 
-    async findDistrictPerformace(from: Date, to: Date, limit: number): Promise<districtPerformaceDto []> {
+    async findDistrictPerformace(from: Date, to: Date, limit: number): Promise<districtPerformaceDto[]> {
         try {
             return await this.model.aggregate([
                 {
-                    $match: { createdAt: { $gte: from , $lte: to  }  }
+                    $match: { createdAt: { $gte: from, $lte: to } }
                 },
                 {
                     $group: {
@@ -299,11 +309,11 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
         }
     }
 
-    async findTopCitys(from: Date, to: Date, limit: number): Promise<topCitiesDto []> {
+    async findTopCitys(from: Date, to: Date, limit: number): Promise<topCitiesDto[]> {
         try {
             return await this.model.aggregate([
                 {
-                    $match: { createdAt: { $gte: from , $lte: to  }  }
+                    $match: { createdAt: { $gte: from, $lte: to } }
                 },
                 {
                     $group: {

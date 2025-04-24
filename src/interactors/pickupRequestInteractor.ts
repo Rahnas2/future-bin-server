@@ -17,6 +17,7 @@ import { pickupRequestStatusDto } from "../dtos/pickupReqeustStatusDto";
 import { IChatRepository } from "../interfaces/repositories/IChatRepository";
 import { IMessageRepository } from "../interfaces/repositories/IMessageRepository";
 import { notificationTypesDto } from "../dtos/notificationTypeDto";
+import { ITransactionRepository } from "../interfaces/repositories/ITransactionReporisoty";
 
 
 @injectable()
@@ -28,7 +29,8 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         @inject(INTERFACE_TYPE.stripeService) private stripService: IStripService,
         @inject(INTERFACE_TYPE.notificationRepository) private notificationRepository: INotificationRepository,
         @inject(INTERFACE_TYPE.chatRepository) private chatRepository: IChatRepository,
-        @inject(INTERFACE_TYPE.messagRepository) private messagRepository: IMessageRepository
+        @inject(INTERFACE_TYPE.messagRepository) private messagRepository: IMessageRepository,
+        @inject(INTERFACE_TYPE.transactionRepository) private transactionRepository: ITransactionRepository
     ) { }
 
     async createPickupRequest(requestData: PickupRequest): Promise<void> {
@@ -182,7 +184,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
                 // Price per pickup
                 const perPickupPrice = totalAmount / totalPickups;
-
+    
                 // Calculate collected waste value ( completed pickups * per pickup price)
                 const collectedValue = completedPickups * perPickupPrice;
 
@@ -193,6 +195,29 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         if (refundAmount > 0) {
             await this.stripService.createRefund(result.paymentIntentId!, refundAmount)
         }
+
+        //Notification
+        const notificationDataForUser = {
+            receiverId: result.userId,
+            type: "pickup_cancelled" as notificationTypesDto,
+            message: role === 'resident' ? `Cancelled  ${result.type} due to ${updatedData.cancellation.reason} ` : `${result.collectorName} Cancelled Your ${result.type} due to ${updatedData.cancellation.reason} Money will be refunded to your account`,
+            requestId: result._id
+        }
+        const notification1 = await this.notificationRepository.create(notificationDataForUser)
+        this.SocketService.sentNotification(result.userId.toString(), 'pickup_cancelled', {
+            notification: notification1
+        })
+
+        const notificationDataForCollector = {
+            receiverId: result.collectorId,
+            type: "pickup_cancelled" as notificationTypesDto,
+            message: role === 'collector' ? `Cancelled ${result.name}  ${result.type} Pickup Request due to ${updatedData.cancellation.reason}` : `User ${result.name} Cancelled his Pickup Request to due to ${result.name}`,
+            requestId: result._id
+        }
+        const notification2 = await this.notificationRepository.create(notificationDataForCollector)
+        this.SocketService.sentNotification(notification2.receiverId.toString(), 'pickup_cancelled', {
+            notification: notification2
+        })
 
         //If chat exist between user and collector delete the chat
         if (result.collectorId) {
@@ -221,21 +246,67 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         }
 
 
+        //Notification
+        const notificationDataForUser = {
+            receiverId: pickupRequest.userId,
+            type: "pickup_completed" as notificationTypesDto,
+            message: `your ${pickupRequest.type} is successfully Completed by  ${pickupRequest.collectorName} `,
+            requestId: pickupRequest._id
+        }
+        const notification1 = await this.notificationRepository.create(notificationDataForUser)
+        this.SocketService.sentNotification(pickupRequest.userId.toString(), 'pickup_completed', {
+            notification: notification1
+        })
+
+        const notificationDataForCollector = {
+            receiverId: pickupRequest.collectorId,
+            type: "pickup_completed" as notificationTypesDto,
+            message: `Successfully compleded ${pickupRequest.type} for ${pickupRequest.collectorName} Thanks for your Service `,
+            requestId: pickupRequest._id
+        }
+        const notification2 = await this.notificationRepository.create(notificationDataForCollector)
+        this.SocketService.sentNotification(notification2.receiverId.toString(), 'pickup_completed', {
+            notification: notification2
+        })
+
         // Transfet Money To Collector
         const collector = await this.collectorRepoitory.finByUserId(pickupRequest.collectorId as string)
         if (collector[0].stripeAccountId) {
-            const collectorAmountINR = pickupRequest.totalAmount * 0.5;
-            // Convert INR to USD (example exchange rate: 1 INR = 0.012 USD)
-            const exchangeRate = 0.012; // Update with real-time rate from an API in production
-            const collectorAmountUSD = collectorAmountINR * exchangeRate;
-            const transferAmount = Math.round(collectorAmountUSD * 100);
+            const serviceAmount = pickupRequest.totalAmount * 0.5;
+            console.log('service amount ', serviceAmount)
+            const transferAmount = Math.round(serviceAmount * 100);
 
-            await this.stripService.createTransfer({
+            const transfer = await this.stripService.createTransfer({
                 amount: transferAmount,
                 currency: 'usd',
                 destination: collector[0].stripeAccountId,
                 transfer_group: pickupRequest._id.toString(),
             })
+
+            // Store Transfer Details
+            await this.transactionRepository.create({
+                paymentId: transfer.id,
+                pickupRequestId: pickupRequest._id,
+                userId: collector[0].userId,
+                amount: transfer.amount / 100,
+                currency: transfer.currency,
+                type: 'credit',
+                paymentStatus: 'succeeded'
+            })
+
+            // Notification For Transfer 
+            const transferNotification = {
+                receiverId: pickupRequest.collectorId,
+                type: "payment_success" as notificationTypesDto,
+                message: `Transfered ${transfer.amount}`,
+                requestId: pickupRequest._id
+            }
+            const notification3 = await this.notificationRepository.create(transferNotification)
+            this.SocketService.sentNotification(notification3.receiverId.toString(), 'payment_success', {
+                notification: notification3
+            })
+
+            // const notification = await this.notificationRepository.createMany([notificationDataForUser, notificationDataForCollector, transferNotification])
 
         }
 

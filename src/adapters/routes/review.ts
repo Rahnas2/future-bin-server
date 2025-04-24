@@ -16,6 +16,7 @@ router.route('/')
 .post(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onAddReview)
 .put(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'admin'), controller.onUpdateReview)
 .delete(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'admin'), controller.onDeleteReview)
+
 router.get('/app', controller.onGetAllAppReviews)
 
 
@@ -27,9 +28,6 @@ router.get('/my-review/:collectorId', AuthMiddleware.validateJwt, AuthMiddleware
 
 //get user reveiw about collector return arrray of document 
 router.get('/my-reviews/collectors', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onGetUserReviewsAbountCollectors)
-
-
-
 
 //get all reviews about the collector with collector id 
 router.get('/collector/:collectorId', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('collector', 'admin') , controller.onGetCollectorReviews)
