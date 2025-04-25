@@ -35,11 +35,28 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
     async createPickupRequest(requestData: PickupRequest): Promise<void> {
 
+        //IF Request Check the User has any prevous 'pending' or 'accepted' or 'confirmed' subscription request
+        if (requestData.type === 'subscription') {
+            const existingRequest = await this.pickupRequestRepository.checkUserHasSubscription(requestData.userId)
+            if (existingRequest && existingRequest.type === 'subscription') {
+                const status = existingRequest.status
+
+                const message = status === 'pending'
+                    ? 'Your previous subscription request is still pending. Please cancel it before submitting a new request.'
+                    : status === 'accepted'
+                        ? `Your previous subscription request has been accepted by ${existingRequest.collectorName}. Please complete the payment to activate it, or cancel it to proceed with a new subscription.`
+                        : `You already have an active subscription plan (${existingRequest.subscription.name}). Please cancel your current subscription before creating a new one.`;
+
+                throw new conflictError(message);
+            }
+        }
+
         //request location 
         const requestLocation = requestData.address.location
-
+        console.log('request locaion ', requestLocation)
         // Find within 5km radius
         const users = await this.userRepository.findNearCollectorsId(requestLocation, 5000)
+        console.log('near collectors ', users)
         //if no collectors found
         if (!users || !users.length) {
             throw new notFound("Sorry No nearby collectors found")
@@ -51,7 +68,6 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         //find active collectors from nearby collectors
         const activeCollectors = await this.collectorRepoitory.findActiveCollectorsByUserId(usersIds)
 
-        console.log('active collectors ', activeCollectors)
 
         //create request and store _id
         const requestId = await this.pickupRequestRepository.createRequest(requestData)
@@ -125,11 +141,11 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
         //if the request was subscription update the (subscriptionPlanId) on the user collection,
         //and cancell the previous subscription 
-        if (request.type === 'subscription') {
-            await this.userRepository.findByIdAndUpdate(request.userId, { subscriptionPlanId: request.subscription.planId })
+        // if (request.type === 'subscription') {
+        //     await this.userRepository.findByIdAndUpdate(request.userId, { subscriptionPlanId: request.subscription.planId })
 
-            await this.pickupRequestRepository.findByUserIdAndStatusThenUpdate(request.userId, 'accepted', { status: 'canelled' })
-        }
+        //     await this.pickupRequestRepository.findByUserIdAndStatusThenUpdate(request.userId, 'accepted', { status: 'canelled' })
+        // }
 
 
 
@@ -184,7 +200,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
                 // Price per pickup
                 const perPickupPrice = totalAmount / totalPickups;
-    
+
                 // Calculate collected waste value ( completed pickups * per pickup price)
                 const collectedValue = completedPickups * perPickupPrice;
 
@@ -196,7 +212,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             await this.stripService.createRefund(result.paymentIntentId!, refundAmount)
         }
 
-        //Notification
+        //Notification For User
         const notificationDataForUser = {
             receiverId: result.userId,
             type: "pickup_cancelled" as notificationTypesDto,
@@ -208,16 +224,19 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             notification: notification1
         })
 
-        const notificationDataForCollector = {
-            receiverId: result.collectorId,
-            type: "pickup_cancelled" as notificationTypesDto,
-            message: role === 'collector' ? `Cancelled ${result.name}  ${result.type} Pickup Request due to ${updatedData.cancellation.reason}` : `User ${result.name} Cancelled his Pickup Request to due to ${result.name}`,
-            requestId: result._id
+        // For Collector If he Accepted
+        if (result.collectorId) {
+            const notificationDataForCollector = {
+                receiverId: result.collectorId,
+                type: "pickup_cancelled" as notificationTypesDto,
+                message: role === 'collector' ? `Cancelled ${result.name}  ${result.type} Pickup Request due to ${updatedData.cancellation.reason}` : `User ${result.name} Cancelled his Pickup Request to due to ${result.name}`,
+                requestId: result._id
+            }
+            const notification2 = await this.notificationRepository.create(notificationDataForCollector)
+            this.SocketService.sentNotification(notification2.receiverId.toString(), 'pickup_cancelled', {
+                notification: notification2
+            })
         }
-        const notification2 = await this.notificationRepository.create(notificationDataForCollector)
-        this.SocketService.sentNotification(notification2.receiverId.toString(), 'pickup_cancelled', {
-            notification: notification2
-        })
 
         //If chat exist between user and collector delete the chat
         if (result.collectorId) {
@@ -290,7 +309,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
                 userId: collector[0].userId,
                 amount: transfer.amount / 100,
                 currency: transfer.currency,
-                type: 'credit',
+                type: 'transfered',
                 paymentStatus: 'succeeded'
             })
 

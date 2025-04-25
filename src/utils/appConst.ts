@@ -1,5 +1,3 @@
-import { transactionRepository } from "../infrastructure/database/repositories/transactionRepository";
-import { collectorInteractor } from "../interactors/collectorInteractor";
 
 
 
@@ -22,7 +20,7 @@ export const INTERFACE_TYPE = {
     webhookController: Symbol.for('webhookController'),
     reviewController: Symbol.for('reviewController'),
     scheduledPickupController: Symbol.for('scheduledPickupController'),
-    
+    transactionController: Symbol.for('transactionController'),
 
     //interactors 
     otpInteractor: Symbol.for("otpInteractor"),
@@ -39,6 +37,7 @@ export const INTERFACE_TYPE = {
     paymentInteractor: Symbol.for('paymentInteractor'),
     reviewInteractor: Symbol.for('reviewInteractor'),
     scheduledPickupInteractor: Symbol.for('scheduledPickupInteractor'),
+    transactionInteractor: Symbol.for('transactionInteractor'),
 
     //repositories
     redisRepository: Symbol.for("redisRepository"),

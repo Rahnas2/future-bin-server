@@ -6,5 +6,5 @@ export interface IUserInteractor {
     editUserProfile(id: string, data: Partial<IUser>, file?: Express.Multer.File): Promise<IUser>
     changePassword(id: string, currentPassword: string, newPassword: string): Promise<void>
 
-    getTransactionHistory(userId: string): Promise<ITransactionDocument []>
+    // getTransactionHistory(userId: string, role: string): Promise<ITransactionDocument []>
 }

@@ -340,4 +340,12 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
         }
     }
 
+    async checkUserHasSubscription(userId: string): Promise<IPickupeRequestDocument | null> {
+        try {
+            return await this.model.findOne({ userId, type: 'subscription', status: { $in: ["pending", 'accepted', 'confirmed']} })
+        } catch (error) {
+            throw new DatabaseError(`database error ${error}`)
+        }
+    }
+
 }

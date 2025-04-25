@@ -23,7 +23,6 @@ export interface IUser{
         };
     }
     isBlock?: boolean
-    subscriptionPlanId?: string,
     // createdAt: Date,
     // updatedAt: Date
 }

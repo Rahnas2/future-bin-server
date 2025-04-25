@@ -29,8 +29,7 @@ const userSchema = new Schema<IUserDocument>(
                 coordinates: { type: [Number], required: true },
             },
         },
-        isBlock: { type: Boolean, default: false },
-        subscriptionPlanId: { type: ObjectId, ref: 'subscriptions', default: null },
+        isBlock: { type: Boolean, default: false }
     },
     { timestamps: true }
 );

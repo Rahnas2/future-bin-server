@@ -8,6 +8,8 @@ import { IAdminteractor } from "../interfaces/interactors/IAdminInteractor";
 import { summaryDto } from "../dtos/summaryDto";
 import { IPickupRequestRepository } from "../interfaces/repositories/IPickupRequestRepository";
 import { requestAnalyticsDto } from "../dtos/requestAnalyticsDto";
+import { ITransactionRepository } from "../interfaces/repositories/ITransactionReporisoty";
+import { revenueSummaryDto } from "../dtos/RevenueSummaryDto";
 
 // @injectable()
 export class adminInteractor implements IAdminteractor {
@@ -15,7 +17,8 @@ export class adminInteractor implements IAdminteractor {
     constructor(@inject(INTERFACE_TYPE.adminRepository) private adminRepository: IAdminRepository,
         @inject(INTERFACE_TYPE.hashingService) private hashingService: IHashingService,
         @inject(INTERFACE_TYPE.jwtService) private jwtService: IJwtService,
-        @inject(INTERFACE_TYPE.pickupRequestRepository) private pickupRequestRepository: IPickupRequestRepository
+        @inject(INTERFACE_TYPE.pickupRequestRepository) private pickupRequestRepository: IPickupRequestRepository,
+        @inject(INTERFACE_TYPE.transactionRepository) private transactionRepository: ITransactionRepository
     ) { }
 
     async login(email: string, password: string, secret: string) {
@@ -74,6 +77,12 @@ export class adminInteractor implements IAdminteractor {
             districtPerformance,
             topCities
         }
+    }
+
+
+    //revenue 
+    async revenue(): Promise<revenueSummaryDto []> {
+        return await this.transactionRepository.findSummary()
     }
 
 

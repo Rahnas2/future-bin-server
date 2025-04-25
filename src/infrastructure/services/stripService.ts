@@ -197,7 +197,7 @@ export class stripeService implements IStripService {
             userId,
             amount: paymentIntent.amount / 100,
             currency: paymentIntent.currency,
-            type: 'debit',
+            type: 'credited',
             paymentStatus: 'succeeded'
         })
         console.log('new transaction ', newTransaction)
@@ -264,6 +264,7 @@ export class stripeService implements IStripService {
 
         const pickupRequest = await this.pickupRequestRepository.findOne({ paymentIntentId: paymentIntent.id });
         if (!pickupRequest) return
+
         //Create Transaction Document 
         await this.transactionRepository.create({
             paymentId: paymentIntent.id,
@@ -271,7 +272,7 @@ export class stripeService implements IStripService {
             userId,
             amount: paymentIntent.amount / 100,
             currency: paymentIntent.currency,
-            type: 'debit',
+            type: 'credited',
             paymentStatus: 'failed'
         })
     }
@@ -296,7 +297,7 @@ export class stripeService implements IStripService {
                 userId: PikupRequest.userId,
                 amount: refund.amount / 100,
                 currency: refund.currency,
-                type: 'credit',
+                type: 'refunded',
                 paymentStatus: 'succeeded'
             })
         }

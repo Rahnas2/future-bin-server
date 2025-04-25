@@ -4,7 +4,7 @@ export interface transaction {
     userId: string,
     amount: number,
     currency: string,
-    type: 'credit'| 'debit'
-    paymentStatus: 'succeeded' | 'failed'
+    type: 'credited' | 'refunded' | 'transfered',
+    paymentStatus: 'pending' | 'succeeded' | 'failed'
     createdAt: Date
 }

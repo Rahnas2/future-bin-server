@@ -29,7 +29,7 @@ export class collectorInteractor implements ICollectorInteractor {
 
     async getMyEarnings(collectorId: string): Promise<collectorEarningsSummaryDto> {
 
-        const totalEarningsAgg = await this.transactionRepository.findTotalEarnings(collectorId);
+        const totalEarningsAgg = await this.transactionRepository.findTotalEarningsForCollector(collectorId);
         console.log('total earnings ', totalEarningsAgg)
         const totalEarnings = totalEarningsAgg?.[0]?.totalEarnings || 0;
 
@@ -42,7 +42,7 @@ export class collectorInteractor implements ICollectorInteractor {
             if (item._id === 'subscription') subscriptionEarnings = item.totalEarnings;
         }
 
-        const lastCredit = await this.transactionRepository.findLatestCreditTransaction(collectorId)
+        const lastCredit = await this.transactionRepository.findLatestTransfer(collectorId)
         console.log('last data  ', lastCredit)
         const lastPaymentDate = lastCredit?.createdAt?.toISOString() || null;
 

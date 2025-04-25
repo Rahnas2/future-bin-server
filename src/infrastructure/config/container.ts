@@ -54,6 +54,8 @@ import { scheduledPickupInteractor } from "../../interactors/scheduledPickupInte
 import { scheduledPickupController } from "../../adapters/controllers/scheduledPickupController";
 import { collectorInteractor } from "../../interactors/collectorInteractor";
 import { transactionRepository } from "../database/repositories/transactionRepository";
+import { transactionInteractor } from "../../interactors/transactionInteractor";
+import { transactionController } from "../../adapters/controllers/transactionController";
 
 const container = new Container()
 
@@ -104,6 +106,7 @@ container.bind(INTERFACE_TYPE.wasteTypeInteractor).to(wasteTypeInteractor)
 container.bind(INTERFACE_TYPE.paymentInteractor).to(paymentInteractor)
 container.bind(INTERFACE_TYPE.reviewInteractor).to(reviewInteractor)
 container.bind(INTERFACE_TYPE.scheduledPickupInteractor).to(scheduledPickupInteractor)
+container.bind(INTERFACE_TYPE.transactionInteractor).to(transactionInteractor)
 
 
 //controllers
@@ -122,6 +125,7 @@ container.bind(INTERFACE_TYPE.cloudinaryController).to(cloudinaryController)
 container.bind(INTERFACE_TYPE.webhookController).to(webhookController)
 container.bind(INTERFACE_TYPE.reviewController).to(reviewController)
 container.bind(INTERFACE_TYPE.scheduledPickupController).to(scheduledPickupController)
+container.bind(INTERFACE_TYPE.transactionController).to(transactionController)
 
 
 //middlewares

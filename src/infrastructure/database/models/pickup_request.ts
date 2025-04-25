@@ -128,6 +128,9 @@ const pickupRequestSchema = new Schema({
         name: {
             type: String
         },
+        features: {
+            type: [String]
+        },
         totalPickups: {
             type: Number
         },

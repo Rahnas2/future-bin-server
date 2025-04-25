@@ -57,14 +57,15 @@ export class userController {
     }
 
     //Transaction History for resident 
-    onGetTransactionHistory = async (req: AuthRequest, res: Response, next: NextFunction) => {
-        try {
-            const userId = req._id
-            const transactions = await this.userInteractor.getTransactionHistory(userId!)
+    // onGetTransactionHistory = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    //     try {
+    //         const userId = req._id
+    //         const role = req.role
+    //         const transactions = await this.userInteractor.getTransactionHistory(userId!, role!)
 
-            res.status(200).json({message: 'success', transactions})
-        } catch (error) {
-            next(error)
-        }
-    }
+    //         res.status(200).json({message: 'success', transactions})
+    //     } catch (error) {
+    //         next(error)
+    //     }
+    // }
 }

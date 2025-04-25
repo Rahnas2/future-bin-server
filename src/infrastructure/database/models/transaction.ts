@@ -25,15 +25,12 @@ const transactionSchema = new Schema ({
     }, 
     type: {
         type: String,
-        enum: ['credit', 'debit']
+        enum: ['credited', 'refunded', 'transfered']
     },
     paymentStatus: {
         type: String,
         enum: ['pending', 'succeeded', 'failed'],
         default: 'pending'
-    },
-    refundedAmount: {
-        type: Number
     },
     createdAt: { type: Date, default: Date.now },
 }) 

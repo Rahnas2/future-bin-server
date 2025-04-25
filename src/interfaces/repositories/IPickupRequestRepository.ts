@@ -18,7 +18,6 @@ export interface IPickupRequestRepository extends IBaseRepository<IPickupeReques
     findUserRequestsByTypeAndStatus(userId: string, type: string, status: string): Promise<IPickupeRequestDocument []>
 
     findPendingRequestsWithLocation(location: locationDto, maxDistance: number): Promise<PickupRequest[]>
-    // findRequestById(id: string): Promise<PickupRequest | null>
 
     findByUserIdAndStatusThenUpdate(userId: string, status: string, updatedData: Partial<PickupRequest>): Promise<void>
 
@@ -39,4 +38,6 @@ export interface IPickupRequestRepository extends IBaseRepository<IPickupeReques
     findDistrictPerformace(from: Date, to: Date, limit: number): Promise<districtPerformaceDto []>
 
     findTopCitys(from: Date, to: Date, limit: number): Promise<topCitiesDto []>
+
+    checkUserHasSubscription(userId: string): Promise<IPickupeRequestDocument | null>
 }

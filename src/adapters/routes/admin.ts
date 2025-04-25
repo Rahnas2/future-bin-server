@@ -23,7 +23,7 @@ router.post('/login', controller.onLogin)
 
 //Dashboard 
 router.get('/dashboard/summary', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'),  controller.onGetSummary)
-router.get('/dashboard/analytics', controller.onAnalytics)      
+router.get('/dashboard/analytics', controller.onAnalytics)      //requeat analitcs chart
 
 
 router.get('/fetch-users', AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), userManagment.onFetchUsers)
@@ -48,6 +48,9 @@ router.route('/waste-types')
 .post(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), WasteTypeController.onAddWasteType)
 .put(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), WasteTypeController.onEditWasteType)
 .delete(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), WasteTypeController.onDeleteWasteType)
+
+//review management 
+router.get('/revenue',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('admin'), controller.onRevenue)
 
 
 

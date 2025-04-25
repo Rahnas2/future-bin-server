@@ -62,4 +62,16 @@ export class adminController {
             next(error)
         }    
     }
+
+
+    //Revenue 
+    onRevenue = async(req: Request, res: Response, next: NextFunction) => {
+        try {
+            const summary = await this.adminteractor.revenue()
+            res.status(200).json({message: 'success', summary})
+        } catch (error) {
+            next(error)
+        }
+    }
+
 }
