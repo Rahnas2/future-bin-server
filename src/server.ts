@@ -80,8 +80,8 @@ app.use(errorHandler)
 
 connectDB().then(() => {
 
-    initializeCronJobs()
-    
+    initializeCronJobs()      
+
     server.listen(PORT, () => {
         console.log('listening to : ', PORT)
     })

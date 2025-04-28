@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # 4. Install dependencies
-RUN npm install
+RUN npm ci
 
 # 5. Copy source files into the container
 COPY . .
@@ -19,5 +19,5 @@ EXPOSE 8080
 # 7. Build (if you use TypeScript)
 RUN npm run build
 
-# 8. Start the app
-CMD ["npm", "run", "start"]
+# 8. Start the Server
+CMD ["npm", "run", "dev"]
