@@ -6,6 +6,8 @@ import dotenv from 'dotenv'
 dotenv.config()
 import cookieParser from 'cookie-parser'
 import connectDB from "./infrastructure/config/mongodb";
+import { initializeCronJobs } from './infrastructure/config/cronJob';
+
 import cors from 'cors'
 
 
@@ -15,6 +17,7 @@ import container from './infrastructure/config/container';
 const app = express();
 const server = createServer(app);
 import { SocketConfig } from './infrastructure/config/socket';
+
 // Get SocketConfig from container & initialize
 const socketConfig = container.get(SocketConfig);
 socketConfig.initializeSocket(server);
@@ -76,6 +79,9 @@ app.use(errorHandler)
 
 
 connectDB().then(() => {
+
+    initializeCronJobs()
+    
     server.listen(PORT, () => {
         console.log('listening to : ', PORT)
     })

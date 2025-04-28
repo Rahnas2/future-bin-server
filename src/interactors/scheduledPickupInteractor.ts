@@ -7,14 +7,22 @@ import { IScheduledPickupDocument } from "../interfaces/documents/IScheduledPick
 import { IPickupRequestRepository } from "../interfaces/repositories/IPickupRequestRepository";
 import { notFound } from "../domain/errors";
 import { IPickupRequestInteractor } from "../interfaces/interactors/IPickupRequestInteractor";
+import mongoose from "mongoose";
 
 @injectable()
 export class scheduledPickupInteractor implements IScheduledPickupInteractor {
     constructor(@inject(INTERFACE_TYPE.scheduledPickupRepository) private scheduledPickupRepository: IScheduledPickupRepository,
         @inject(INTERFACE_TYPE.pickupRequestRepository) private pickupRequestRepository: IPickupRequestRepository,
         @inject(INTERFACE_TYPE.pickupRequestInteractor) private pickupRequestInteractor: IPickupRequestInteractor) { }
-    async getCollectorScheduledPickups(collectorId: string): Promise<IScheduledPickupDocument[]> {
+
+        //Get All Scheduled Pickup for Collector 
+        async getCollectorScheduledPickups(collectorId: string): Promise<IScheduledPickupDocument[]> {
         return await this.scheduledPickupRepository.findCollectorScheduledPickups(collectorId)
+    }
+
+    //Get Scheduled Pickup for the Request 
+    async getScheduledPickupsForTheRequest(pickupRequestId: string): Promise<IScheduledPickupDocument[]> {
+        return await this.scheduledPickupRepository.findByRequestId(pickupRequestId)
     }
 
     async completeScheduledPickup(scheduledPickupId: string): Promise<void> {
@@ -30,9 +38,6 @@ export class scheduledPickupInteractor implements IScheduledPickupInteractor {
 
         // Update Pickup Request
         const updatedCompletedPickups = pickupRequest.subscription.completedPickups + 1
-        // const updatedPickupRequestData: { completedPickups: number, status?: string } = {
-        //     completedPickups: updatedCompletedPickups
-        // }
 
         if (updatedCompletedPickups === pickupRequest.subscription.totalPickups) {
             await this.pickupRequestInteractor.completeRequest(pickupRequest._id)
@@ -47,11 +52,12 @@ export class scheduledPickupInteractor implements IScheduledPickupInteractor {
         }
 
         await this.pickupRequestRepository.findByIdAndUpdate(pickupRequest._id, { subscription: updatedSubscription })
-
     }
 
-
-    async getScheduledPickupsForTheRequest(pickupRequestId: string): Promise<IScheduledPickupDocument[]> {
-        return await this.scheduledPickupRepository.findByRequestId(pickupRequestId)
+    async cancelScheduledPickups(): Promise<mongoose.UpdateResult> {
+        console.log('hello my guyys')
+        const now = new Date()
+        return await this.scheduledPickupRepository.cancelOverduePickups(now)
     }
+
 }

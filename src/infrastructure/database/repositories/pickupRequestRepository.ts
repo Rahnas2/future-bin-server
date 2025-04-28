@@ -223,13 +223,20 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
     //Pickup Requst 
     async findrequestTrends(from: Date, to: Date): Promise<requestTrendsDto[]> {
         try {
-            return await this.model.aggregate([
+            const result = await this.model.aggregate([
                 {
                     $match: { createdAt: { $gte: from, $lte: to } }
                 },
                 {
+                    $addFields: {
+                        createdDate: {
+                            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+                        }
+                    }
+                },
+                {
                     $group: {
-                        _id: '$createdAt',
+                        _id: '$createdDate',
                         onDemand: {
                             $sum: {
                                 $cond: [{ $eq: ["$type", "on-demand"] }, 1, 0]
@@ -251,6 +258,8 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
                     }
                 }
             ])
+            console.log('result tends ', result)
+            return result
         } catch (error) {
             throw new DatabaseError(`database error ${error}`)
         }
@@ -342,7 +351,7 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
 
     async checkUserHasSubscription(userId: string): Promise<IPickupeRequestDocument | null> {
         try {
-            return await this.model.findOne({ userId, type: 'subscription', status: { $in: ["pending", 'accepted', 'confirmed']} })
+            return await this.model.findOne({ userId, type: 'subscription', status: { $in: ["pending", 'accepted', 'confirmed'] } })
         } catch (error) {
             throw new DatabaseError(`database error ${error}`)
         }

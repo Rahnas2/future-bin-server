@@ -3,7 +3,7 @@ import { IScheduledPickupDocument } from "../../../interfaces/documents/ISchedul
 import { IScheduledPickupRepository } from "../../../interfaces/repositories/IScheduledRepository";
 import { BaseRepository } from "./baseRepository";
 import scheduledPickupModel from "../models/scheduledPickup";
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { DatabaseError } from "../../../domain/errors";
 
 @injectable()
@@ -63,9 +63,20 @@ export class scheduledPickupRepository extends BaseRepository<IScheduledPickupDo
 
     }
 
-    async findByRequestId(pickupRequestId: string): Promise<IScheduledPickupDocument []> {
+    async findByRequestId(pickupRequestId: string): Promise<IScheduledPickupDocument[]> {
         try {
-            return await this.model.find({pickupRequestId})
+            return await this.model.find({ pickupRequestId })
+        } catch (error) {
+            throw new DatabaseError('data base error ')
+        }
+    }
+
+    async cancelOverduePickups(date: Date): Promise<mongoose.UpdateResult> {
+        try {
+            return await this.model.updateMany(
+                {scheduledDate: {$lt: date}, status: 'pending'},
+                { $set: { status: 'missed' } }
+            )
         } catch (error) {
             throw new DatabaseError('data base error ')
         }

@@ -8,7 +8,7 @@ export interface completeProfileDto {
         city: string;
         pincode: number;
         location: {
-            type: 'Point';
+            type: 'Point';   
             coordinates: [number, number];
         };
     };
@@ -17,9 +17,9 @@ export interface completeProfileDto {
         front: string,
         back: string
     },
-    vehicleDetails?: {
+    vehicleDetails?: {    
         type: string;
-        registrationNumber: string;
+        registrationNumber: string;    
         image: string;
     };
 }

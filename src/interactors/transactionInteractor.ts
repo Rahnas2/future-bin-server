@@ -64,7 +64,7 @@ export class transactionInteractor implements ITransactionInteractor {
             const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 
             response = await this.transactionRepository.filterByCustomDatesAndType(type, start, end)
-            for (let i = 0; i <= daysDiff; i++) {
+            for (let i = 0; i < daysDiff; i++) {
                 const current = new Date(start);
                 current.setDate(current.getDate() + i);
                 const year = current.getFullYear();

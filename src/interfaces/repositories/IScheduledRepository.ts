@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { BaseRepository } from "../../infrastructure/database/repositories/baseRepository";
 import { IScheduledPickupDocument } from "../documents/IScheduledPickupDocument";
 
@@ -5,4 +6,6 @@ export interface IScheduledPickupRepository extends BaseRepository<IScheduledPic
     findCollectorScheduledPickups(collectorId: string): Promise<any[]>;
 
     findByRequestId(pickupRequestId: string): Promise<IScheduledPickupDocument []>
+
+    cancelOverduePickups(date: Date): Promise<mongoose.UpdateResult>
 }
