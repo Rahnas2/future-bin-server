@@ -1,4 +1,4 @@
-import { Model, Document, FilterQuery } from "mongoose";
+import mongoose, { Model, Document, FilterQuery, UpdateQuery } from "mongoose";
 import { IBaseRepository } from "../../../interfaces/repositories/IBaseRepository";
 import { DatabaseError, notFound } from "../../../domain/errors";
 
@@ -65,6 +65,10 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
         }
     }
 
+    async countFilterDocument(data: FilterQuery<T>): Promise<number> {
+        return this.model.countDocuments(data)
+    }
+
     async create(data: Partial<T>): Promise<T> {
         try {
             const result = await this.model.create(data)
@@ -90,6 +94,15 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
             if (!result) {
                 throw new notFound('not found');
             }
+            return result
+        } catch (error) {
+            throw new DatabaseError('data base error')
+        }
+    }
+
+    async updateManay(filter: FilterQuery<T>, updatedData: UpdateQuery<T>): Promise<mongoose.UpdateResult>{
+        try {
+            const result = await this.model.updateMany(filter, updatedData)
             return result
         } catch (error) {
             throw new DatabaseError('data base error')

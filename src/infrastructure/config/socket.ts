@@ -44,8 +44,14 @@ export class SocketConfig {
                 //if there is no chat create new else update last message
                 if (!chat) {
                     chat = await this.chatRepository.create({ participants: [_id, receiverId], lastMessage: { message, senderId: _id, isImage } })
+                    this.io?.to(receiverId).emit('new-chat');
                 } else {
                     await this.chatRepository.findByIdAndUpdate(chat._id.toString(), { lastMessage: { message, senderId: _id, isImage } })
+                    const hasUnreadMessage = await this.messagRepository.findOne({chatId: chat._id, receiverId, isRead: false})
+                    if(!hasUnreadMessage){
+                        console.log('all messages are read ')
+                        this.io?.to(receiverId).emit('new-chat')
+                    }
                 }
 
 

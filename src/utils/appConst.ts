@@ -1,3 +1,5 @@
+import { overviewController } from "../adapters/controllers/overviewController";
+import { overviewInteractor } from "../interactors/overviewInteractor";
 
 
 
@@ -21,6 +23,7 @@ export const INTERFACE_TYPE = {
     reviewController: Symbol.for('reviewController'),
     scheduledPickupController: Symbol.for('scheduledPickupController'),
     transactionController: Symbol.for('transactionController'),
+    overviewController: Symbol.for('overviewController'),
 
     //interactors 
     otpInteractor: Symbol.for("otpInteractor"),
@@ -38,6 +41,7 @@ export const INTERFACE_TYPE = {
     reviewInteractor: Symbol.for('reviewInteractor'),
     scheduledPickupInteractor: Symbol.for('scheduledPickupInteractor'),
     transactionInteractor: Symbol.for('transactionInteractor'),
+    overviewInteractor: Symbol.for('overviewInteractor'),
 
     //repositories
     redisRepository: Symbol.for("redisRepository"),

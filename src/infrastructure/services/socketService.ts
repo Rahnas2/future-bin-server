@@ -12,14 +12,11 @@ export class SocketService {
         @inject(SocketConfig) private socketConfig: SocketConfig) { }
 
     async sentNotification(id: string, event: string, data: any) {
-        // const socketId = await this.socketRepository.getSocketId(_id);
-        // console.log('socket id ', socketId)    
-        // if (socketId) {
-            this.socketConfig.getIO().to(id).emit(event, data);
-        // }
+        this.socketConfig.getIO().to(id).emit(event, data);
+        this.socketConfig.getIO().to(id).emit('new-notification')
     }
 
-    
 
-    
+
+
 }

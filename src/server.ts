@@ -36,6 +36,7 @@ import reviewRouter from './adapters/routes/review'
 import scheduledPickupRouter from './adapters/routes/scheduledPickup'
 import notificationRouter from './adapters/routes/notification'
 import transactiosnRouter from './adapters/routes/transactions'
+import overviewRouter from './adapters/routes/overview'
 
 import { errorHandler } from './adapters/middleware/errorHandler';
 
@@ -72,6 +73,8 @@ app.use('/api/scheduled-pickups', scheduledPickupRouter)
 app.use('/api/notifications', notificationRouter)
 
 app.use('/api/transactions', transactiosnRouter) 
+
+app.use('/api/overview', overviewRouter)
 
 
 //error handling middleware 

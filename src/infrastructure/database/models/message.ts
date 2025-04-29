@@ -23,11 +23,11 @@ const messageSchema = new Schema({
     isImage: {
         type: Boolean,
         default: false
+    },
+    isRead: { 
+        type: Boolean, 
+        default: false 
     }
-    // isRead: { 
-    //     type: Boolean, 
-    //     default: false 
-    // }
 }, { timestamps: true });
 
 const messageModel = model<IMessageDocument>('message', messageSchema);

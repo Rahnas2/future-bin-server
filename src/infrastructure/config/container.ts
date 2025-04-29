@@ -56,6 +56,8 @@ import { collectorInteractor } from "../../interactors/collectorInteractor";
 import { transactionRepository } from "../database/repositories/transactionRepository";
 import { transactionInteractor } from "../../interactors/transactionInteractor";
 import { transactionController } from "../../adapters/controllers/transactionController";
+import { overviewInteractor } from "../../interactors/overviewInteractor";
+import { overviewController } from "../../adapters/controllers/overviewController";
 
 const container = new Container()
 
@@ -107,6 +109,7 @@ container.bind(INTERFACE_TYPE.paymentInteractor).to(paymentInteractor)
 container.bind(INTERFACE_TYPE.reviewInteractor).to(reviewInteractor)
 container.bind(INTERFACE_TYPE.scheduledPickupInteractor).to(scheduledPickupInteractor)
 container.bind(INTERFACE_TYPE.transactionInteractor).to(transactionInteractor)
+container.bind(INTERFACE_TYPE.overviewInteractor).to(overviewInteractor)
 
 
 //controllers
@@ -126,6 +129,7 @@ container.bind(INTERFACE_TYPE.webhookController).to(webhookController)
 container.bind(INTERFACE_TYPE.reviewController).to(reviewController)
 container.bind(INTERFACE_TYPE.scheduledPickupController).to(scheduledPickupController)
 container.bind(INTERFACE_TYPE.transactionController).to(transactionController)
+container.bind(INTERFACE_TYPE.overviewController).to(overviewController)
 
 
 //middlewares

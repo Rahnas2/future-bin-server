@@ -60,15 +60,15 @@ export class chatController {
         }
     };
 
-    onGetMessageHistory = async (req: Request, res: Response, next: NextFunction) => {
+    onGetMessageHistory = async (req: AuthRequest, res: Response, next: NextFunction) => {
         try {
             const { chatId } = req.query
-
-            if(!chatId){
+            const receiverId = req._id
+            if(!chatId || !receiverId){
                 res.status(400).json({message: 'missing required fields'})
                 return
             }
-            const messages = await this.chatInteractor.getMessageHistory(chatId as string);
+            const messages = await this.chatInteractor.getMessageHistory(chatId as string, receiverId);
             res.status(200).json({ messages });
         } catch (error) {
             next(error);

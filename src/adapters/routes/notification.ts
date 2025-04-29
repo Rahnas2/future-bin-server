@@ -11,6 +11,6 @@ const router = express.Router()
 
 router.route('/')
 .get(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.onFetchAllNotificationOfReceiver)
-.delete(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), controller.onDeleteNotifiation)
+.delete(AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.onDeleteNotifiation)
 
 export default router

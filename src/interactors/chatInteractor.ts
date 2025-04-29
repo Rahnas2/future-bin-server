@@ -30,7 +30,8 @@ export class chatInteractor implements IChatInteractor {
         return this.messagRepository.getMessageHistory(chat._id.toString())
     }
 
-    async getMessageHistory(chatId: string): Promise<IMessageDocument[]> {
+    async getMessageHistory(chatId: string, receiverId: string): Promise<IMessageDocument[]> {
+        await this.messagRepository.updateManay({chatId, receiverId}, {isRead: true})
         return this.messagRepository.getMessageHistory(chatId)
     }
 }

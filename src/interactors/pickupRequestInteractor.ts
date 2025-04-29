@@ -18,6 +18,8 @@ import { IChatRepository } from "../interfaces/repositories/IChatRepository";
 import { IMessageRepository } from "../interfaces/repositories/IMessageRepository";
 import { notificationTypesDto } from "../dtos/notificationTypeDto";
 import { ITransactionRepository } from "../interfaces/repositories/ITransactionReporisoty";
+import { IScheduledPickupInteractor } from "../interfaces/interactors/IScheduledPickupInteractor";
+import { IScheduledPickupRepository } from "../interfaces/repositories/IScheduledRepository";
 
 
 @injectable()
@@ -30,7 +32,8 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         @inject(INTERFACE_TYPE.notificationRepository) private notificationRepository: INotificationRepository,
         @inject(INTERFACE_TYPE.chatRepository) private chatRepository: IChatRepository,
         @inject(INTERFACE_TYPE.messagRepository) private messagRepository: IMessageRepository,
-        @inject(INTERFACE_TYPE.transactionRepository) private transactionRepository: ITransactionRepository
+        @inject(INTERFACE_TYPE.transactionRepository) private transactionRepository: ITransactionRepository,
+        @inject(INTERFACE_TYPE.scheduledPickupRepository) private scheduledPickupRepository: IScheduledPickupRepository,
     ) { }
 
     async createPickupRequest(requestData: PickupRequest): Promise<void> {
@@ -196,7 +199,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
                 const totalAmount = result.totalAmount;
                 const totalPickups = result.subscription.totalPickups;
-                const completedPickups = result.subscription.completedPickups;
+                const completedPickups = await this.scheduledPickupRepository.countFilterDocument({ pickupRequestId: result._id, status: 'completed' })
 
                 // Price per pickup
                 const perPickupPrice = totalAmount / totalPickups;
@@ -259,8 +262,24 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             throw new notFound('pickup request not found')
         }
 
-        if (pickupRequest.paidAmount > pickupRequest.totalAmount) {
-            const refundAmount = pickupRequest.paidAmount - pickupRequest.totalAmount
+        let refundAmount = 0
+        if (pickupRequest.type === 'on-demand' && pickupRequest.paidAmount > pickupRequest.totalAmount) {
+            refundAmount = pickupRequest.paidAmount - pickupRequest.totalAmount
+        } else if (pickupRequest.type === 'subscription') {
+            const totalAmount = pickupRequest.totalAmount;
+            const totalPickups = pickupRequest.subscription.totalPickups;
+            const completedPickups = await this.scheduledPickupRepository.countFilterDocument({ pickupRequestId: pickupRequest._id, status: 'completed' })
+
+            // Price per pickup
+            const perPickupPrice = totalAmount / totalPickups;
+
+            // Calculate collected waste value ( completed pickups * per pickup price)
+            const collectedValue = completedPickups * perPickupPrice;
+
+            // Refund amount = total paid - collected value
+            refundAmount = totalAmount - collectedValue;
+        }
+        if (refundAmount > 0) {
             await this.stripService.createRefund(pickupRequest.paymentIntentId!, refundAmount)
         }
 
@@ -291,11 +310,20 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         // Transfet Money To Collector
         const collector = await this.collectorRepoitory.finByUserId(pickupRequest.collectorId as string)
         if (collector[0].stripeAccountId) {
-            const serviceAmount = pickupRequest.totalAmount * 0.5;
-            console.log('service amount ', serviceAmount)
-            const transferAmount = Math.round(serviceAmount * 100);
-
-            const transfer = await this.stripService.createTransfer({
+            let serviceAmount = pickupRequest.totalAmount * 0.5
+            console.log('service amount here ', serviceAmount)
+            if (pickupRequest.type === 'subscription') {
+                const cancelScheduledPickups = await this.scheduledPickupRepository.countFilterDocument({pickupRequestId: pickupRequest._id, status: 'missed'})
+                if(cancelScheduledPickups !== 0) {
+                    const perPickupServiceAmount = serviceAmount / pickupRequest.subscription.totalPickups;
+                    console.log('service price per pickup ', perPickupServiceAmount)
+                    serviceAmount = serviceAmount - (cancelScheduledPickups * perPickupServiceAmount)
+                    console.log('serviceAmount lasts ', serviceAmount)
+                }
+            }
+            const transferAmount = Math.round(serviceAmount * 100)    
+            console.log('transfer amount ', transferAmount)
+            const transfer = await this.stripService.createTransfer({    
                 amount: transferAmount,
                 currency: 'usd',
                 destination: collector[0].stripeAccountId,
@@ -325,7 +353,6 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
                 notification: notification3
             })
 
-            // const notification = await this.notificationRepository.createMany([notificationDataForUser, notificationDataForCollector, transferNotification])
 
         }
 

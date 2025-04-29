@@ -15,8 +15,8 @@ export class scheduledPickupInteractor implements IScheduledPickupInteractor {
         @inject(INTERFACE_TYPE.pickupRequestRepository) private pickupRequestRepository: IPickupRequestRepository,
         @inject(INTERFACE_TYPE.pickupRequestInteractor) private pickupRequestInteractor: IPickupRequestInteractor) { }
 
-        //Get All Scheduled Pickup for Collector 
-        async getCollectorScheduledPickups(collectorId: string): Promise<IScheduledPickupDocument[]> {
+    //Get All Scheduled Pickup for Collector 
+    async getCollectorScheduledPickups(collectorId: string): Promise<IScheduledPickupDocument[]> {
         return await this.scheduledPickupRepository.findCollectorScheduledPickups(collectorId)
     }
 
@@ -54,10 +54,36 @@ export class scheduledPickupInteractor implements IScheduledPickupInteractor {
         await this.pickupRequestRepository.findByIdAndUpdate(pickupRequest._id, { subscription: updatedSubscription })
     }
 
-    async cancelScheduledPickups(): Promise<mongoose.UpdateResult> {
-        console.log('hello my guyys')
+    async cancelScheduledPickups(): Promise<void | null> {
+
         const now = new Date()
-        return await this.scheduledPickupRepository.cancelOverduePickups(now)
+        const result = await this.scheduledPickupRepository.findOverduePickups(now)
+
+        if(!result.length) return null
+
+        for (let i of result) {
+            await this.scheduledPickupRepository.findByIdAndUpdate(i._id, {status: 'missed'})
+            
+            const pickupRequest = await this.pickupRequestRepository.findById(i.pickupRequestId)
+
+            if (pickupRequest.type === 'on-demand') continue
+
+            // Update Pickup Request
+            const updatedCompletedPickups = pickupRequest.subscription.completedPickups + 1
+
+            if (updatedCompletedPickups === pickupRequest.subscription.totalPickups) {
+                await this.pickupRequestInteractor.completeRequest(pickupRequest._id)
+            }
+
+            const updatedSubscription = {
+                ...pickupRequest.subscription,
+                completedPickups: updatedCompletedPickups
+            }
+
+            await this.pickupRequestRepository.findByIdAndUpdate(pickupRequest._id, { subscription: updatedSubscription })
+
+
+        }
     }
 
 }

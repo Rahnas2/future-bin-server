@@ -4,6 +4,7 @@ import { IMessageDocument } from "../../../interfaces/documents/IMessageDocument
 import { IMessageRepository } from "../../../interfaces/repositories/IMessageRepository";
 import messageModel from "../models/message";
 import { DatabaseError, notFound } from "../../../domain/errors";
+import { Types } from "mongoose";
 
 @injectable()
 export class messagRepository extends BaseRepository<IMessageDocument> implements IMessageRepository {
@@ -31,5 +32,21 @@ export class messagRepository extends BaseRepository<IMessageDocument> implement
         } catch (error) {
             throw new DatabaseError('data base error')
         }
+    }
+
+    async countUnreadChats(receiverId: string): Promise<number> {
+        const result = await this.model.aggregate([
+            {
+                $match: { receiverId: new Types.ObjectId(receiverId), isRead: false}
+            }, {
+                $group: {
+                    _id: '$chatId'
+                }
+            }, 
+            {
+                $count: 'unreadChats'
+            }
+        ])
+        return result.length ? result[0].unreadChats : 0
     }
 }

@@ -71,6 +71,15 @@ export class scheduledPickupRepository extends BaseRepository<IScheduledPickupDo
         }
     }
 
+    async findOverduePickups(date: Date): Promise<IScheduledPickupDocument []> {
+        try {
+            return await this.model.find(
+                {scheduledDate: {$lt: date}, status: 'pending'}
+            )
+        } catch (error) {
+            throw new DatabaseError('data base error ')
+        }
+    }
     async cancelOverduePickups(date: Date): Promise<mongoose.UpdateResult> {
         try {
             return await this.model.updateMany(

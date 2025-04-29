@@ -7,5 +7,6 @@ export interface IScheduledPickupRepository extends BaseRepository<IScheduledPic
 
     findByRequestId(pickupRequestId: string): Promise<IScheduledPickupDocument []>
 
+    findOverduePickups(date: Date): Promise<IScheduledPickupDocument []>
     cancelOverduePickups(date: Date): Promise<mongoose.UpdateResult>
 }

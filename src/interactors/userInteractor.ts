@@ -67,11 +67,4 @@ export class userInteractor implements IUserInteractor {
 
     }
 
-    // async getTransactionHistory(userId: string, role: 'resident' | 'collector' | 'admin'): Promise<ITransactionDocument []> {
-    //     if(role === 'admin'){
-    //         return await this.transactionRepository.findAll(1, 10)
-    //     }
-    //     return await this.transactionRepository.finByUserId(userId)
-    // }
-
 }

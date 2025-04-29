@@ -4,4 +4,5 @@ export interface Message {
     receiverId: string, 
     message: string,
     isImage: boolean
+    isRead: boolean
 }

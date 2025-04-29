@@ -4,14 +4,16 @@ import { INTERFACE_TYPE } from '../../utils/appConst';
 import container from '../config/container'
 
 export function scheduleCancelOverduePickupsJob() {
-  const interactor = container.get<scheduledPickupInteractor>(INTERFACE_TYPE.scheduledPickupInteractor);
+  const scheduledPickupInteractor = container.get<scheduledPickupInteractor>(INTERFACE_TYPE.scheduledPickupInteractor);
 
   // Run daily at 23:59
-  cron.schedule('59 23 * * *', async () => {
+  cron.schedule('* * * * *', async () => {
     console.log('Running scheduled pickup cancellation job...');
-    const result = await interactor.cancelScheduledPickups();
-    console.log('result ', result)
-    console.log(`${result.modifiedCount} Overdue pickups cancelled `);
-  });
+    const result = await scheduledPickupInteractor.cancelScheduledPickups();
+    if (!result) {
+      console.log('no over due pickups')
+    } else {
+      console.log(`Overdue pickups updated `)
+    }
+  })
 }
-      
