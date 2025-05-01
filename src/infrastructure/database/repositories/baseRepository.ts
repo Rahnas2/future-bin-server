@@ -51,6 +51,7 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
 
             const skip = (page - 1) * limit
             const response = await this.model.find(query).skip(skip).limit(limit).sort({ createdAt: -1 })
+            console.log('response form repository ', response)
             return response
         } catch (error) {
             throw new DatabaseError('data base error')

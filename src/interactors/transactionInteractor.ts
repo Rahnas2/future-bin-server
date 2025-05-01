@@ -10,11 +10,19 @@ import { transactionAnalyticsDto } from "../dtos/transactionAnalyticsDto";
 export class transactionInteractor implements ITransactionInteractor {
     constructor(@inject(INTERFACE_TYPE.transactionRepository) private transactionRepository: ITransactionRepository) { }
 
-    async transactionHistory(userId: string, role: string, page: number, limit: number): Promise<ITransactionDocument[]> {
+    async transactionHistory(userId: string, role: string, page: number, limit: number): Promise<{ transactions: ITransactionDocument[], total: number }> {
         if (role === 'admin') {
-            return await this.transactionRepository.findAll(page, limit)
+            const [ transactions, total ] =  await Promise.all([
+                this.transactionRepository.findAll(page, limit),
+                this.transactionRepository.totalDocumentCount()
+            ]) 
+            return { transactions, total } 
+            
         }
-        return await this.transactionRepository.finByUserId(userId)
+        const transactions =  await this.transactionRepository.findTransactionsByUserId(userId, page, limit)
+        const total = await this.transactionRepository.countFilterDocument({userId})
+
+        return { transactions, total }
     }
 
     async analytics(filter: string, type: string, startDate?: string, endDate?: string): Promise<transactionAnalyticsDto[]> {

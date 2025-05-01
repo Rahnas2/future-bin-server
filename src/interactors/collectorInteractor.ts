@@ -43,7 +43,6 @@ export class collectorInteractor implements ICollectorInteractor {
         }
 
         const lastCredit = await this.transactionRepository.findLatestTransfer(collectorId)
-        console.log('last data  ', lastCredit)
         const lastPaymentDate = lastCredit?.createdAt?.toISOString() || null;
 
         const collector = await this.collectorRepoitory.findOne({userId: collectorId})
@@ -52,7 +51,8 @@ export class collectorInteractor implements ICollectorInteractor {
         }
 
         const balance = await this.stripeService.checkBalance(collector.stripeAccountId);
-        const walletBalance = balance.available[0]?.amount || 0
+        console.log('balance here ', balance)
+        const walletBalance = balance.available[0]?.amount / 100 || 0
 
         return {
             totalEarnings,

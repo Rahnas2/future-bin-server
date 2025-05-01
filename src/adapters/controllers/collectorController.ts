@@ -81,8 +81,8 @@ export class collectorController {
                 return 
             }
 
-            if(!amount || amount < 100){
-                res.status(400).json({message: 'mininum withdrawal amount is 100'})
+            if(!amount || amount < 1){
+                res.status(400).json({message: 'mininum withdrawal amount is 1'})
                 return 
             }
 

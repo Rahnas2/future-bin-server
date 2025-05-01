@@ -13,11 +13,10 @@ export class transactionController {
             const userId = req._id
             const role = req.role
 
-            const page = parseInt(req.query.page as string) | 1
-            const limit = parseInt(req.query.limit as string) | 10
-            const transactions = await this.transactionInteractor.transactionHistory(userId as string, role as string, page, limit)
-
-            res.status(200).json({ message: 'success', transactions })
+            const page = parseInt(req.query.page as string) || 1
+            const limit = parseInt(req.query.limit as string) || 10
+            const { transactions, total } = await this.transactionInteractor.transactionHistory(userId as string, role as string, page, limit)
+            res.status(200).json({ message: 'success', transactions, totalPages: Math.ceil(total / limit) })
         } catch (error) {
             next(error)
         }

@@ -14,6 +14,17 @@ export class transactionRepository extends BaseRepository<ITransactionDocument> 
         super(transactionModel)
     }
 
+
+    async findTransactionsByUserId(userId: string, page: number, limit: number): Promise<ITransactionDocument []> {
+        try {
+            const skip = (page - 1) * limit
+            const result  = await this.model.find({userId}).skip(skip).limit(limit).sort({createdAt: -1})
+            return result
+        } catch (error) {
+            throw new DatabaseError('data base error ')
+        }
+    }
+
     async findSummary(): Promise<revenueSummaryDto[]> {
         try {
             const result = await this.model.aggregate([

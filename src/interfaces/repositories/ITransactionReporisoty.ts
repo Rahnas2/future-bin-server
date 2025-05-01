@@ -5,8 +5,9 @@ import { IBaseRepository } from "./IBaseRepository";
 
 export interface ITransactionRepository extends IBaseRepository<ITransactionDocument>{
 
-    findSummary(): Promise<revenueSummaryDto []>
+    findTransactionsByUserId(userId: string, page: number, limit: number): Promise<ITransactionDocument []>
 
+    findSummary(): Promise<revenueSummaryDto []>
     findTotalEarningsForCollector(collectorId: string): Promise<{ totalEarnings: number }[]>
     findCollectorEarningsByPickupType(userId: string): Promise<{ _id: string; totalEarnings: number }[]>
     findLatestTransfer(collectorId: string): Promise<{ createdAt: Date } | null>

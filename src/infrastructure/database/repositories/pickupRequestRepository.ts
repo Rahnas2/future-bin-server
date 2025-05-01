@@ -50,7 +50,7 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
 
     async findCollectorRequestsByTypeAndStatus(collectorId: string, type: string, status: string): Promise<IPickupeRequestDocument[]> {
         try {
-            const result = await this.model.find({ collectorId, type, status })
+            const result = await this.model.find({ collectorId, type, status }).sort({createdAt: -1})
             return result
 
         } catch (error) {
@@ -60,7 +60,7 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
 
     async findUserRequestsByTypeAndStatus(userId: string, type: string, status: string): Promise<IPickupeRequestDocument[]> {
         try {
-            const reuslt = await this.model.find({ userId, type, status })
+            const reuslt = await this.model.find({ userId, type, status }).sort({createdAt: -1})
             return reuslt
         } catch (error) {
             throw new DatabaseError('data base error')
@@ -135,11 +135,13 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
     async findReqeustHistoryByCollectorIdAndStatus(collectorId: string, status: 'all' | pickupRequestStatusDto, page: number, limit: number): Promise<{ requests: PickupRequest[], total: number }> {
         try {
 
-            const query: { collectorId: string, status?: pickupRequestStatusDto } = { collectorId }
+            const query: { collectorId: string, status?: pickupRequestStatusDto | { $ne: pickupRequestStatusDto } } = { collectorId }
 
             if (status !== 'all') {
                 query.status = status;
-            }
+            }else {
+                query.status = { $ne: 'accepted' };
+            }    
 
             const skip = (page - 1) * limit
 
