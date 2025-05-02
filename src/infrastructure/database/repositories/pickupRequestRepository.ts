@@ -34,14 +34,42 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
         }
     }
 
-    // async findRequestById(id: string): Promise<PickupRequest | null> {
-    //     try {
-    //         return await pickupRequestModel.findById(id)
-    //     } catch (error) {
-    //         throw new DatabaseError('data base error')
-    //     }
 
-    // }
+
+    async findByIdAndPopulateCollectorImageEmailMobile(id: string): Promise<PickupRequest> {
+        try {
+            const result: any = await this.model.findById(id)
+                .populate('userId', 'image')
+                .populate('collectorId', 'image email mobile')
+
+            if (!result) {
+                throw new notFound('request not found');
+            }
+
+
+
+            // Convert the Mongoose Document to a plain JS object
+            const plain = result.toObject();
+
+            const userId = plain.userId?._id?.toString();
+            const collectorId = plain.collectorId?._id?.toString();
+            
+            const transformed = {
+                ...plain,
+                userId,  
+                collectorId,
+                userImage: plain.userId?.image ?? undefined,
+                collectorImage: plain.collectorId?.image ?? undefined,
+                collectorEmail: plain.collectorId?.email ?? undefined,
+                collectorMobile: plain.collectorId?.mobile ?? undefined,
+            };
+
+            return transformed;
+
+        } catch (error) {
+            throw new DatabaseError(`error finding request by id  ${error}`)
+        }
+    }
 
     async createRequest(requestData: PickupRequest): Promise<string> {
         const result = await pickupRequestModel.insertOne(requestData);
@@ -50,7 +78,7 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
 
     async findCollectorRequestsByTypeAndStatus(collectorId: string, type: string, status: string): Promise<IPickupeRequestDocument[]> {
         try {
-            const result = await this.model.find({ collectorId, type, status }).sort({createdAt: -1})
+            const result = await this.model.find({ collectorId, type, status }).sort({ createdAt: -1 })
             return result
 
         } catch (error) {
@@ -60,7 +88,7 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
 
     async findUserRequestsByTypeAndStatus(userId: string, type: string, status: string): Promise<IPickupeRequestDocument[]> {
         try {
-            const reuslt = await this.model.find({ userId, type, status }).sort({createdAt: -1})
+            const reuslt = await this.model.find({ userId, type, status }).sort({ createdAt: -1 })
             return reuslt
         } catch (error) {
             throw new DatabaseError('data base error')
@@ -139,9 +167,9 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
 
             if (status !== 'all') {
                 query.status = status;
-            }else {
+            } else {
                 query.status = { $ne: 'accepted' };
-            }    
+            }
 
             const skip = (page - 1) * limit
 
@@ -154,8 +182,8 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
             ])
 
             return { requests, total }
-        } catch (error) {
-            throw new DatabaseError('database error')
+        } catch (error) {      
+            throw new DatabaseError('database error')       
         }
     }
 

@@ -45,14 +45,20 @@ export class collectorInteractor implements ICollectorInteractor {
         const lastCredit = await this.transactionRepository.findLatestTransfer(collectorId)
         const lastPaymentDate = lastCredit?.createdAt?.toISOString() || null;
 
-        const collector = await this.collectorRepoitory.findOne({userId: collectorId})
-        if(!collector || !collector.stripeAccountId){
+        const collector = await this.collectorRepoitory.findOne({ userId: collectorId })
+        if (!collector || !collector.stripeAccountId) {
             throw new notFound('stripe id is missing')
         }
 
         const balance = await this.stripeService.checkBalance(collector.stripeAccountId);
         console.log('balance here ', balance)
-        const walletBalance = balance.available[0]?.amount / 100 || 0
+        const availableBalance = balance.available[0]?.amount / 100 || 0
+        const pendingBalance = balance.pending[0]?.amount / 100 || 0
+
+        let walletBalance = availableBalance;
+        if (pendingBalance < 0) {
+            walletBalance = availableBalance + pendingBalance
+        }
 
         return {
             totalEarnings,
@@ -66,11 +72,11 @@ export class collectorInteractor implements ICollectorInteractor {
 
     async withdrawBalance(collectorId: string, amount: number): Promise<Stripe.Payout> {
 
-        const collector = await this.collectorRepoitory.findOne({userId: collectorId})
+        const collector = await this.collectorRepoitory.findOne({ userId: collectorId })
 
-        if(!collector || !collector.stripeAccountId){
+        if (!collector || !collector.stripeAccountId) {
             throw new notFound('collector or stirpe id is missing ')
-          
+
         }
         return await this.stripeService.createPayout(collector.stripeAccountId, amount)
     }

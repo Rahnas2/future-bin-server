@@ -5,7 +5,7 @@ const { ObjectId } = Schema.Types;
 const pickupRequestSchema = new Schema({
     userId: {
         type: ObjectId,
-        ref: "users",
+        ref: "user",
         required: true
     },
     name: {
@@ -69,7 +69,7 @@ const pickupRequestSchema = new Schema({
     },
     collectorId: {
         type: ObjectId,
-        ref: "collectors",
+        ref: "user",
         default: null
     },
     collectorName: {

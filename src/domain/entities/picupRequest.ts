@@ -22,6 +22,10 @@ export interface BasePickupRequest<T extends 'on-demand' | 'subscription'> {
     };
     collectorId?: string;
     collectorName?: string;
+    userImage?: string,
+    collectorImage?: string,
+    collectorEmail?: string,
+    collectorMobile?: number,
     cancellation?: requestCancellationDto
     refund?:  pickupRequestRefundDto
     paymentStatus: string;

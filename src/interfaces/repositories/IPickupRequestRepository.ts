@@ -5,12 +5,15 @@ import { pickupRequestStatusDto } from "../../dtos/pickupReqeustStatusDto";
 import { requestTrendsDto } from "../../dtos/requestTrendsDto";
 import { summaryDto } from "../../dtos/summaryDto";
 import { topCitiesDto } from "../../dtos/topAreaDto";
+import { pickupRequestInteractor } from "../../interactors/pickupRequestInteractor";
 import { IPickupeRequestDocument } from "../documents/IPickupRequestDocument";
 import { IBaseRepository } from "./IBaseRepository";
 
 export interface IPickupRequestRepository extends IBaseRepository<IPickupeRequestDocument>{
 
     checkRequestStatusById(id: string): Promise<{status: string}>
+
+    findByIdAndPopulateCollectorImageEmailMobile(id: string): Promise<PickupRequest>
 
     createRequest(requestData: PickupRequest): Promise<string>
 

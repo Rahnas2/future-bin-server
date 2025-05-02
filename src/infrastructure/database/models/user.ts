@@ -1,9 +1,6 @@
 import  { Schema, model, ObjectId } from "mongoose";
-
-import { IUser } from "../../../domain/entities/user";
 import { IUserDocument } from "../../../interfaces/documents/IUserDocument";
 
-const { ObjectId } = Schema.Types;
 
 
 
