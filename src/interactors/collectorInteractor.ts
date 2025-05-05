@@ -78,6 +78,9 @@ export class collectorInteractor implements ICollectorInteractor {
             throw new notFound('collector or stirpe id is missing ')
 
         }
-        return await this.stripeService.createPayout(collector.stripeAccountId, amount)
+        const response =  await this.stripeService.createPayout(collector.stripeAccountId, amount, collectorId)
+        console.log('response ', response)
+
+        return response
     }
 }

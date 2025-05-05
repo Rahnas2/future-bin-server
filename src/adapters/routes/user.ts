@@ -31,7 +31,7 @@ router.route('/profile')
 
 router.post('/change-password',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'collector'), controller.onChangePassword)
 
-router.get('/subscriptions',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident', 'admin'), SubscriptionController.OnfetchSubscriptons)
+router.get('/subscriptions', SubscriptionController.OnfetchSubscriptons)
 
 router.get('/subscriptions/:id',AuthMiddleware.validateJwt, AuthMiddleware.restrictTo('resident'), SubscriptionController.onFetchSubscriptonById)
 

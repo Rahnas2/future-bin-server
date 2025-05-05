@@ -16,7 +16,6 @@ export class collectorController {
         try {
             const userId = req._id
             const collector = await this.userManagementInteractor.fetchCollectorDetails(userId as string)
-            console.log('fetghing completed ', collector)
             res.status(200).json({ message: 'success', collector })
         } catch (error) {
             next(error)

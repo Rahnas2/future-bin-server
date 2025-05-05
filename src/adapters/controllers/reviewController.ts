@@ -62,10 +62,7 @@ export class reviewController {
 
       const limit = parseInt(req.query.limit as string) || 10
       const lastId = req.query.lastId as string
-      console.log('limit  ', limit)
-      console.log('last id ', lastId)
       const reviews = await this.reviewInteractor.getAllAppReviews(lastId, limit)
-      console.log('reviews controller ', reviews)
       res.status(200).json({ reviews })
     } catch (error) {
       next(error)

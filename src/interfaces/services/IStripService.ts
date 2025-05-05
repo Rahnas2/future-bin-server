@@ -18,5 +18,5 @@ export interface IStripService {
 
     checkBalance(stripeAccountId: string): Promise<Stripe.Balance>
 
-    createPayout(stripeAccountId: string, amount: number): Promise<Stripe.Payout>
+    createPayout(stripeAccountId: string, amount: number, userId: string): Promise<Stripe.Payout>
 }     

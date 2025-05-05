@@ -62,7 +62,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         console.log('near collectors ', users)
         //if no collectors found
         if (!users || !users.length) {
-            throw new notFound("Sorry No nearby collectors found")
+            throw new notFound("Sorry, we were unable to locate any collectors in your area. Please try entering a different address.");
         }
 
         //extract id's from collectors array
@@ -214,7 +214,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         const notificationDataForUser = {
             receiverId: result.userId,
             type: "pickup_cancelled" as notificationTypesDto,
-            message: role === 'resident' ? `Cancelled  ${result.type} due to ${updatedData.cancellation.reason} ` : `${result.collectorName} Cancelled Your ${result.type} due to ${updatedData.cancellation.reason} Money will be refunded to your account`,
+            message: role === 'resident' ? `Cancelled  ${result.type} request due to ${updatedData.cancellation.reason} ` : `${result.collectorName} Cancelled Your ${result.type} request due to ${updatedData.cancellation.reason} Money will be refunded to your account`,
             requestId: result._id
         }
         const notification1 = await this.notificationRepository.create(notificationDataForUser)
@@ -229,7 +229,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             const notificationDataForCollector = {
                 receiverId: result.collectorId,
                 type: "pickup_cancelled" as notificationTypesDto,
-                message: role === 'collector' ? `Cancelled ${result.name}  ${result.type} Pickup Request due to ${updatedData.cancellation.reason}` : `User ${result.name} Cancelled his Pickup Request to due to ${result.name}`,
+                message: role === 'collector' ? `Cancelled ${result.type} Pickup Request due to ${updatedData.cancellation.reason}` : `User ${result.name} Cancelled his Pickup Request to due to ${result.cancellation?.reason}`,
                 requestId: result._id
             }
             const notification2 = await this.notificationRepository.create(notificationDataForCollector)
@@ -292,147 +292,147 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
                 this.SocketService.sentNotification(notification3.receiverId.toString(), 'payment_success', {
                     notification: notification3
                 })
+            }
         }
-    }
 
-    //If chat exist between user and collector delete the chat
-    if(result.collectorId) {
-        const chat = await this.chatRepository.findSingleChat(result.userId, result.collectorId)
-        if (chat) {
-            await this.chatRepository.deleteById(chat.id)
-            await this.messagRepository.deleteByChatId(chat._id.toString())
+        //If chat exist between user and collector delete the chat
+        if (result.collectorId) {
+            const chat = await this.chatRepository.findSingleChat(result.userId, result.collectorId)
+            if (chat) {
+                await this.chatRepository.deleteById(chat.id)
+                await this.messagRepository.deleteByChatId(chat._id.toString())
+            }
         }
-    }
 
 
         return await this.pickupRequestRepository.findById(id)
     }
 
     //Complete Pickup Request for on-demand
-    async completeRequest(id: string): Promise < IPickupeRequestDocument > {
-    const pickupRequest = await this.pickupRequestRepository.findByIdAndUpdate(id, { status: 'completed', completedAt: new Date() })
+    async completeRequest(id: string): Promise<IPickupeRequestDocument> {
+        const pickupRequest = await this.pickupRequestRepository.findByIdAndUpdate(id, { status: 'completed', completedAt: new Date() })
 
-        if(!pickupRequest) {
-        throw new notFound('pickup request not found')
-    }
+        if (!pickupRequest) {
+            throw new notFound('pickup request not found')
+        }
 
         let refundAmount = 0
-        if(pickupRequest.type === 'on-demand' && pickupRequest.paidAmount > pickupRequest.totalAmount) {
-    refundAmount = pickupRequest.paidAmount - pickupRequest.totalAmount
-} else if (pickupRequest.type === 'subscription') {
-    const totalAmount = pickupRequest.totalAmount;
-    const totalPickups = pickupRequest.subscription.totalPickups;
-    const completedPickups = await this.scheduledPickupRepository.countFilterDocument({ pickupRequestId: pickupRequest._id, status: 'completed' })
+        if (pickupRequest.type === 'on-demand' && pickupRequest.paidAmount > pickupRequest.totalAmount) {
+            refundAmount = pickupRequest.paidAmount - pickupRequest.totalAmount
+        } else if (pickupRequest.type === 'subscription') {
+            const totalAmount = pickupRequest.totalAmount;
+            const totalPickups = pickupRequest.subscription.totalPickups;
+            const completedPickups = await this.scheduledPickupRepository.countFilterDocument({ pickupRequestId: pickupRequest._id, status: 'completed' })
 
-    // Price per pickup
-    const perPickupPrice = totalAmount / totalPickups;
+            // Price per pickup
+            const perPickupPrice = totalAmount / totalPickups;
 
-    // Calculate collected waste value ( completed pickups * per pickup price)
-    const collectedValue = completedPickups * perPickupPrice;
+            // Calculate collected waste value ( completed pickups * per pickup price)
+            const collectedValue = completedPickups * perPickupPrice;
 
-    // Refund amount = total paid - collected value
-    refundAmount = totalAmount - collectedValue;
-}
-if (refundAmount > 0) {
-    await this.stripService.createRefund(pickupRequest.paymentIntentId!, refundAmount)
-}
-
-
-//Notification
-const notificationDataForUser = {
-    receiverId: pickupRequest.userId,
-    type: "pickup_completed" as notificationTypesDto,
-    message: `your ${pickupRequest.type} is successfully Completed by  ${pickupRequest.collectorName} `,
-    requestId: pickupRequest._id
-}
-const notification1 = await this.notificationRepository.create(notificationDataForUser)
-this.SocketService.sentNotification(pickupRequest.userId.toString(), 'pickup_completed', {
-    notification: notification1
-})
-
-const notificationDataForCollector = {
-    receiverId: pickupRequest.collectorId,
-    type: "pickup_completed" as notificationTypesDto,
-    message: `Successfully compleded ${pickupRequest.type} for ${pickupRequest.collectorName} Thanks for your Service `,
-    requestId: pickupRequest._id
-}
-const notification2 = await this.notificationRepository.create(notificationDataForCollector)
-this.SocketService.sentNotification(notification2.receiverId.toString(), 'pickup_completed', {
-    notification: notification2
-})
-
-// Transfet Money To Collector
-const collector = await this.collectorRepoitory.finByUserId(pickupRequest.collectorId as string)
-if (collector[0].stripeAccountId) {
-    let serviceAmount = pickupRequest.totalAmount * 0.5
-    console.log('service amount here ', serviceAmount)
-    if (pickupRequest.type === 'subscription') {
-        const cancelScheduledPickups = await this.scheduledPickupRepository.countFilterDocument({ pickupRequestId: pickupRequest._id, status: 'missed' })
-        if (cancelScheduledPickups !== 0) {
-            const perPickupServiceAmount = serviceAmount / pickupRequest.subscription.totalPickups;
-            serviceAmount = serviceAmount - (cancelScheduledPickups * perPickupServiceAmount)
+            // Refund amount = total paid - collected value
+            refundAmount = totalAmount - collectedValue;
         }
-    }
-    const transferAmount = Math.round(serviceAmount * 100)
-    const transfer = await this.stripService.createTransfer({
-        amount: transferAmount,
-        currency: 'usd',
-        destination: collector[0].stripeAccountId,
-        transfer_group: pickupRequest._id.toString(),
-    })
-
-    // Store Transfer Details
-    await this.transactionRepository.create({
-        paymentId: transfer.id,
-        pickupRequestId: pickupRequest._id,
-        userId: collector[0].userId,
-        amount: transfer.amount / 100,
-        currency: transfer.currency,
-        type: 'transfered',
-        paymentStatus: 'succeeded'
-    })
-
-    // Notification For Transfer 
-    const transferNotification = {
-        receiverId: pickupRequest.collectorId,
-        type: "payment_success" as notificationTypesDto,
-        message: `Transfered ${transfer.amount / 100}`,
-        requestId: pickupRequest._id
-    }
-    const notification3 = await this.notificationRepository.create(transferNotification)
-    this.SocketService.sentNotification(notification3.receiverId.toString(), 'payment_success', {
-        notification: notification3
-    })
+        if (refundAmount > 0) {
+            await this.stripService.createRefund(pickupRequest.paymentIntentId!, refundAmount)
+        }
 
 
-}
+        //Notification
+        const notificationDataForUser = {
+            receiverId: pickupRequest.userId,
+            type: "pickup_completed" as notificationTypesDto,
+            message: `your ${pickupRequest.type} is successfully Completed by  ${pickupRequest.collectorName} `,
+            requestId: pickupRequest._id
+        }
+        const notification1 = await this.notificationRepository.create(notificationDataForUser)
+        this.SocketService.sentNotification(pickupRequest.userId.toString(), 'pickup_completed', {
+            notification: notification1
+        })
 
-// Delete Chat Between User and Collector
-if (pickupRequest.collectorId) {
-    const chat = await this.chatRepository.findSingleChat(pickupRequest.userId, pickupRequest.collectorId)
-    if (chat) {
-        await this.chatRepository.deleteById(chat.id)
-        await this.messagRepository.deleteByChatId(chat._id.toString())
-    }
-}
+        const notificationDataForCollector = {
+            receiverId: pickupRequest.collectorId,
+            type: "pickup_completed" as notificationTypesDto,
+            message: `Successfully compleded ${pickupRequest.type} for ${pickupRequest.collectorName} Thanks for your Service `,
+            requestId: pickupRequest._id
+        }
+        const notification2 = await this.notificationRepository.create(notificationDataForCollector)
+        this.SocketService.sentNotification(notification2.receiverId.toString(), 'pickup_completed', {
+            notification: notification2
+        })
 
-return pickupRequest
+        // Transfet Money To Collector
+        const collector = await this.collectorRepoitory.finByUserId(pickupRequest.collectorId as string)
+        if (collector[0].stripeAccountId) {
+            let serviceAmount = pickupRequest.totalAmount * 0.5
+            console.log('service amount here ', serviceAmount)
+            if (pickupRequest.type === 'subscription') {
+                const cancelScheduledPickups = await this.scheduledPickupRepository.countFilterDocument({ pickupRequestId: pickupRequest._id, status: 'missed' })
+                if (cancelScheduledPickups !== 0) {
+                    const perPickupServiceAmount = serviceAmount / pickupRequest.subscription.totalPickups;
+                    serviceAmount = serviceAmount - (cancelScheduledPickups * perPickupServiceAmount)
+                }
+            }
+            const transferAmount = Math.round(serviceAmount * 100)
+            const transfer = await this.stripService.createTransfer({
+                amount: transferAmount,
+                currency: 'usd',
+                destination: collector[0].stripeAccountId,
+                transfer_group: pickupRequest._id.toString(),
+            })
+
+            // Store Transfer Details
+            await this.transactionRepository.create({
+                paymentId: transfer.id,
+                pickupRequestId: pickupRequest._id,
+                userId: collector[0].userId,
+                amount: transfer.amount / 100,
+                currency: transfer.currency,
+                type: 'transfered',
+                paymentStatus: 'succeeded'
+            })
+
+            // Notification For Transfer 
+            const transferNotification = {
+                receiverId: pickupRequest.collectorId,
+                type: "payment_success" as notificationTypesDto,
+                message: `Transfered ${transfer.amount / 100}`,
+                requestId: pickupRequest._id
+            }
+            const notification3 = await this.notificationRepository.create(transferNotification)
+            this.SocketService.sentNotification(notification3.receiverId.toString(), 'payment_success', {
+                notification: notification3
+            })
+
+
+        }
+
+        // Delete Chat Between User and Collector
+        if (pickupRequest.collectorId) {
+            const chat = await this.chatRepository.findSingleChat(pickupRequest.userId, pickupRequest.collectorId)
+            if (chat) {
+                await this.chatRepository.deleteById(chat.id)
+                await this.messagRepository.deleteByChatId(chat._id.toString())
+            }
+        }
+
+        return pickupRequest
     }
 
     async updatePaymentStatus(requestId: string, paymentStatus: string) {
-    await this.pickupRequestRepository.findByIdAndUpdate(requestId, { paymentStatus })
-}
+        await this.pickupRequestRepository.findByIdAndUpdate(requestId, { paymentStatus })
+    }
 
-    async userPickupRequestHistoryByStatus(id: string, role: string, status: 'all' | pickupRequestStatusDto, page: number, limit: number): Promise < { requests: PickupRequest[], total: number } > {
+    async userPickupRequestHistoryByStatus(id: string, role: string, status: 'all' | pickupRequestStatusDto, page: number, limit: number): Promise<{ requests: PickupRequest[], total: number }> {
 
 
-    if(role === 'resident') {
-    const result = await this.pickupRequestRepository.findReqeustHistoryByUserIdAndStatus(id, status, page, limit)
-    return result
-}
+        if (role === 'resident') {
+            const result = await this.pickupRequestRepository.findReqeustHistoryByUserIdAndStatus(id, status, page, limit)
+            return result
+        }
 
-const result = this.pickupRequestRepository.findReqeustHistoryByCollectorIdAndStatus(id, status, page, limit)
-return result
+        const result = this.pickupRequestRepository.findReqeustHistoryByCollectorIdAndStatus(id, status, page, limit)
+        return result
     }
 
 }

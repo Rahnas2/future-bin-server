@@ -17,7 +17,6 @@ export class userController {
 
             const userId = req._id
             const user = await this.userManagmentInteratcor.fetchUserDetail(userId as string)
-            console.log('backend success', user)
             res.status(200).json({ message: 'success', user })
         } catch (error) {
             console.error('error from fetch user ', error)

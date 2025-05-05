@@ -33,7 +33,7 @@ export class wasteTypeInteractor implements IWasteTypeInteractor {
             if(waste && waste._id.toString() !== id) throw new conflictError('already exist')
         }
         return await this.wasteTypeRepository.findByIdAndUpdate(id, data)
-    }
+    } 
 
     async deleteWasteType(id: string): Promise<void> {
         await this.wasteTypeRepository.deleteById(id)

@@ -380,6 +380,7 @@ export class authInteractor implements IAuthInteractor {
         });
 
         if (decode.role !== 'admin') {
+            console.log('hello... ', decode.role)
             const user = await this.userRepository.findUserById(decode._id)
 
             if (!user) {

@@ -268,7 +268,7 @@ export class pickupRequestRepository extends BaseRepository<IPickupeRequestDocum
                     $group: {
                         _id: '$createdDate',
                         onDemand: {
-                            $sum: {
+                            $sum: {    
                                 $cond: [{ $eq: ["$type", "on-demand"] }, 1, 0]
                             }
                         },

@@ -57,7 +57,6 @@ export  class subscriptionController {
     } 
 
     onEditSubscription = async(req: Request, res: Response, next: NextFunction) => {
-
         try {
             console.log('not coming heree ', req.body)
             const { _id, ...data} = req.body

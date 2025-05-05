@@ -246,7 +246,7 @@ export class authController {
     onRefreshToken = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const refreshToken = req.cookies.refreshToken
-            console.log('getting refrseh token from controller', refreshToken)
+            console.log('refresh token -> ', refreshToken)
             if (!refreshToken) {
                 res.status(400).json({ message: "Unauthorized" })
                 return

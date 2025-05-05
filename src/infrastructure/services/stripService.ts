@@ -26,7 +26,9 @@ export class stripeService implements IStripService {
         @inject(INTERFACE_TYPE.transactionRepository) private transactionRepository: ITransactionRepository,
         @inject(INTERFACE_TYPE.collectorRepoitory) private collectorRepoitory: ICollectorRepository
     ) {
-        this.stripe = new Stripe(process.env.STRIPE_SECRET as string);
+        this.stripe = new Stripe(process.env.STRIPE_SECRET as string, {
+            apiVersion: '2025-02-24.acacia'
+        })
     }
 
 
@@ -118,6 +120,8 @@ export class stripeService implements IStripService {
             case 'account.updated':
                 await this.handleConnectedAccountUpdate(event.data.object)
                 break;
+            case 'payout.updated':
+                await this.handlePayoutUpdate(event.data.object)
             default:
                 console.log(`Unhandled event type: ${event.type}`);
         }
@@ -290,6 +294,16 @@ export class stripeService implements IStripService {
             }
             await this.pickupRequestRepository.findByIdAndUpdate(PikupRequest._id, { refund: data });
 
+            // Create notification
+            const notification = await this.notificationRepository.create({
+                receiverId: PikupRequest.userId,
+                type: 'payment_success',
+                message: `₹${refund.amount / 100} refunded successfully`,
+            })
+
+            // Send real-time notification
+            this.SocketService.sentNotification(PikupRequest.userId, 'new_notification', notification)
+
             //Create Transaction Document 
             await this.transactionRepository.create({
                 paymentId: refund.id,
@@ -301,6 +315,25 @@ export class stripeService implements IStripService {
                 paymentStatus: 'succeeded'
             })
         }
+    }
+
+    private async handlePayoutUpdate(payout: Stripe.Payout) {
+        const userId = payout.metadata?.userId
+        if (!userId) return
+
+        const status = payout.status === 'paid' ? 'succeeded' : payout.status === 'failed' || 'canceled' ? 'failed' : 'pending'
+
+        //Create Transaction Document 
+        await this.transactionRepository.create({
+            paymentId: payout.id,
+            userId: userId,
+            amount: payout.amount / 100,
+            currency: payout.currency,
+            type: 'withdrawal',
+            paymentStatus: status 
+        })
+
+
     }
 
     //Handle Conncted Account Update 
@@ -374,11 +407,14 @@ export class stripeService implements IStripService {
     }
 
     //Create Payout 
-    async createPayout(stripeAccountId: string, amount: number): Promise<Stripe.Payout> {
+    async createPayout(stripeAccountId: string, amount: number, userId: string): Promise<Stripe.Payout> {
         return await this.stripe.payouts.create({
             amount: Math.round(amount * 100),
             currency: 'usd',
             method: 'standard',
+            metadata: {
+                userId
+            }
         }, {
             stripeAccount: stripeAccountId,
         });

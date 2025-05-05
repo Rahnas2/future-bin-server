@@ -8,8 +8,7 @@ const transactionSchema = new Schema ({
     },
     pickupRequestId: {
         type: Types.ObjectId,
-        ref: 'pickup_requests',
-        required: true,
+        ref: 'pickup_requests'
     },
     userId: {
         type: Types.ObjectId,
@@ -25,7 +24,7 @@ const transactionSchema = new Schema ({
     }, 
     type: {
         type: String,
-        enum: ['credited', 'refunded', 'transfered']
+        enum: ['credited', 'refunded', 'transfered', 'withdrawal']
     },
     paymentStatus: {
         type: String,
