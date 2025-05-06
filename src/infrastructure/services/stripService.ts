@@ -129,6 +129,8 @@ export class stripeService implements IStripService {
 
     // Handle Payment Checkout Sessin Completed
     private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+
+        // User Id and Pickup Request Id from metadata
         const userId = session.metadata?.userId
         const pickupRequestId = session.metadata?.pickupRequestId
 
@@ -136,6 +138,7 @@ export class stripeService implements IStripService {
 
         // Determine payment status
         const isPaymentSuccess = session.payment_status === 'paid';
+
         const amount = session.amount_total ? session.amount_total / 100 : 0;
 
         // Create notification
@@ -160,11 +163,23 @@ export class stripeService implements IStripService {
             this.SocketService.sentNotification(pickupRequest.collectorId?.toString() as string, 'payment_status', { pickupRequestId, status: 'success' })
         }
 
+        //Create Transaction Document 
+        const newTransaction = await this.transactionRepository.create({
+            paymentId: session.payment_intent as string || session.id,
+            pickupRequestId,
+            userId,
+            amount: amount,
+            currency: 'usd',
+            type: 'credited',
+            paymentStatus: isPaymentSuccess ? 'succeeded' : 'failed'
+        })
+
         // Send real-time notification
         this.SocketService.sentNotification(
             userId,
-            isPaymentSuccess ? 'payment_success' : 'payment_failed',
+            isPaymentSuccess ? 'payment_success' : 'payment_failed', {
             notification
+        }
         );
 
     }
@@ -182,7 +197,7 @@ export class stripeService implements IStripService {
         })
 
         // Send real-time notification
-        this.SocketService.sentNotification(userId, 'new_notification', notification)
+        this.SocketService.sentNotification(userId, 'payment_success', { notification })
 
         // Check if the payment is for a pickup request
         const pickupRequest = await this.pickupRequestRepository.findOne({ paymentIntentId: paymentIntent.id });
@@ -264,7 +279,7 @@ export class stripeService implements IStripService {
         })
 
         // Send real-time notification
-        this.SocketService.sentNotification(userId, 'new_notification', notification)
+        this.SocketService.sentNotification(userId, 'payment_failed', { notification })
 
         const pickupRequest = await this.pickupRequestRepository.findOne({ paymentIntentId: paymentIntent.id });
         if (!pickupRequest) return
@@ -302,7 +317,7 @@ export class stripeService implements IStripService {
             })
 
             // Send real-time notification
-            this.SocketService.sentNotification(PikupRequest.userId, 'new_notification', notification)
+            this.SocketService.sentNotification(PikupRequest.userId, 'payment_success', { notification })
 
             //Create Transaction Document 
             await this.transactionRepository.create({
@@ -331,7 +346,7 @@ export class stripeService implements IStripService {
             amount: payout.amount / 100,
             currency: payout.currency,
             type: 'withdrawal',
-            paymentStatus: status 
+            paymentStatus: status
         })
 
 

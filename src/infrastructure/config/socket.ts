@@ -49,7 +49,6 @@ export class SocketConfig {
                     await this.chatRepository.findByIdAndUpdate(chat._id.toString(), { lastMessage: { message, senderId: _id, isImage } })
                     const hasUnreadMessage = await this.messagRepository.findOne({chatId: chat._id, receiverId, isRead: false})
                     if(!hasUnreadMessage){
-                        console.log('all messages are read ')
                         this.io?.to(receiverId).emit('new-chat')
                     }
                 }
