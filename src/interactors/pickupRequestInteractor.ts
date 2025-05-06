@@ -83,9 +83,9 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
     }
 
     async getPickupRequestByCollectorId(id: string): Promise<PickupRequest[] | []> {
-        console.log('start interacting 0 ')
+
         const user = await this.userRepository.findUserById(id)
-        console.log('start interacting 1 ')
+
         if (!user) {
             throw new notFound('user not found')
         }

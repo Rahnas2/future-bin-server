@@ -8,6 +8,8 @@ import { ICollectorRepository } from "../interfaces/repositories/ICollectorRepos
 import { collectorFullDetailsDto } from "../dtos/collectorFullDetailsDto";
 import { IEmailService } from "../interfaces/services/IEmailService";
 import { IStripService } from "../interfaces/services/IStripService";
+import { IPickupRequestRepository } from "../interfaces/repositories/IPickupRequestRepository";
+import { pickupRequestSubscriptionDto } from "../dtos/pickupRequestSubscriptionDto";
 
 @injectable()
 export class userManagmentInteractor implements IUserManagmentInteractor {
@@ -15,7 +17,8 @@ export class userManagmentInteractor implements IUserManagmentInteractor {
   constructor(@inject(INTERFACE_TYPE.userRepository) private userRepository: IUserRepository,
     @inject(INTERFACE_TYPE.collectorRepoitory) private collectorRepository: ICollectorRepository,
     @inject(INTERFACE_TYPE.emailService) private emailService: IEmailService,
-    @inject(INTERFACE_TYPE.stripeService) private stripeService: IStripService
+    @inject(INTERFACE_TYPE.stripeService) private stripeService: IStripService,
+    @inject(INTERFACE_TYPE.pickupRequestRepository) private pickupRequestRepository: IPickupRequestRepository
   ) { }
 
 
@@ -29,7 +32,7 @@ export class userManagmentInteractor implements IUserManagmentInteractor {
     return result
   }
 
-  async fetchUserDetail(userId: string): Promise<IUser> {
+  async fetchUserDetail(userId: string): Promise<{user: IUser, activeSubscription: pickupRequestSubscriptionDto | null, totalOnDemandPickupsCount: number }> {
     const user = await this.userRepository.findById(userId)
 
     if (!user) {
@@ -37,7 +40,14 @@ export class userManagmentInteractor implements IUserManagmentInteractor {
     }
     user['password'] = null
 
-    return user
+    const SubscriptionPickupRequest = await this.pickupRequestRepository.findUserRequestsByTypeAndStatus(user._id, 'subscription', 'confirmed')
+    let activeSubscription = null
+    if(SubscriptionPickupRequest.length && SubscriptionPickupRequest[0].type === 'subscription'){
+      activeSubscription = SubscriptionPickupRequest[0].subscription
+    }
+
+    const totalOnDemandPickupsCount = await this.pickupRequestRepository.countFilterDocument({userId: user._id, type: 'on-demand'})
+    return { user, activeSubscription, totalOnDemandPickupsCount }
   }
 
   async toggleStatus(userId: string) {

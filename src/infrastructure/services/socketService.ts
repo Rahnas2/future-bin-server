@@ -13,7 +13,9 @@ export class SocketService {
 
     async sentNotification(id: string, event: string, data: any) {
         this.socketConfig.getIO().to(id).emit(event, data);
-        this.socketConfig.getIO().to(id).emit('new-notification')
+        if(event !== 'new-request' && event !== 'payment_status'){
+            this.socketConfig.getIO().to(id).emit('new-notification')
+        }
     }
 
 

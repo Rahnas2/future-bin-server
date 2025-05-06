@@ -317,6 +317,7 @@ export class stripeService implements IStripService {
         }
     }
 
+    // Handle Payout
     private async handlePayoutUpdate(payout: Stripe.Payout) {
         const userId = payout.metadata?.userId
         if (!userId) return

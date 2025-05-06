@@ -1,4 +1,4 @@
 export interface locationDto {
-    type: string,
+    type: "Point",
     coordinates: [number, number]
 }

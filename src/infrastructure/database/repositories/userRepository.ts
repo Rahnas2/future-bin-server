@@ -65,13 +65,13 @@ export class userRepository extends BaseRepository<IUserDocument> implements IUs
                 { 'address.district': regex },
                 {
                     $expr: {
-                      $regexMatch: {
-                        input: { $concat: ['$firstName', ' ', '$lastName'] },
-                        regex: search,
-                        options: 'i'
-                      }
+                        $regexMatch: {
+                            input: { $concat: ['$firstName', ' ', '$lastName'] },
+                            regex: search,
+                            options: 'i'
+                        }
                     }
-                  }
+                }
             ];
         }
 
@@ -105,17 +105,57 @@ export class userRepository extends BaseRepository<IUserDocument> implements IUs
     //find collectors from particlar distance
     async findNearCollectorsId(location: locationDto, maxDistance: number): Promise<{ _id: string, firstName: string, lastName: string }[] | null> {
         try {
-            return await this.model.find({
-                role: 'collector',
-                'address.location': {
-                    $near: {
-                        $geometry: location,
-                        $maxDistance: maxDistance
+            // return await this.model.find({
+            //     role: 'collector',
+            //     isBlock: false,
+            //     'address.location': {
+            //         $near: {
+            //             $geometry: location,
+            //             $maxDistance: maxDistance
+            //         }
+            //     }
+            // }, { _id: 1, firstName: 1, lastName: 1 })
+
+            return await this.model.aggregate([
+                {
+                    $geoNear: {
+                        near: location,
+                        distanceField: "distance",
+                        spherical: true,
+                        maxDistance: maxDistance,
+                        key: 'address.location',
+                        query: {
+                            role: 'collector',
+                            isBlock: false,
+                        }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "collectors",
+                        localField: "_id",
+                        foreignField: "userId",
+                        as: "collectorData"
+                    }
+                },
+                {
+                    $unwind: "$collectorData"
+                },
+                {
+                    $match: {
+                        "collectorData.approvalStatus": "approved", "collectorData.isStripeEnabled": true
+                    }
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        firstName: 1,
+                        lastName: 1
                     }
                 }
-            }, { _id: 1, firstName: 1, lastName: 1 })
+            ])
         } catch (error) {
-            console.log('nearby locaiotn error ', error)
+            console.error('nearby locaiotn error ', error)
             return null
         }
 

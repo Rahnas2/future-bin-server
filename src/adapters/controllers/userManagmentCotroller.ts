@@ -34,9 +34,9 @@ export class userManagmentController {
 
             const { userId } = req.query
             console.log('user id ', userId)
-            const user = await this.userManagmentInteratcor.fetchUserDetail(userId as string)
+            const {user, activeSubscription, totalOnDemandPickupsCount} = await this.userManagmentInteratcor.fetchUserDetail(userId as string)
 
-            res.status(200).json({ message: 'success', user })
+            res.status(200).json({ message: 'success', user, activeSubscription, totalOnDemandPickupsCount})
         } catch (error) {
             next(error)
         }
