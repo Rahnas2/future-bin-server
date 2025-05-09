@@ -1,0 +1,37 @@
+version: "3"
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: future-bin-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - future-bin
+
+  redis:
+    image: redis:alpine
+    container_name: future-bin-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - future-bin
+
+volumes:
+  redis_data:
+
+networks:
+  future-bin:
+    driver: bridge
