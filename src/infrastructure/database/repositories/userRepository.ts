@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
 import { IUser } from "../../../domain/entities/user";
-import { notFound } from "../../../domain/errors";
+import { DatabaseError, notFound } from "../../../domain/errors";
 import { IUserRepository } from "../../../interfaces/repositories/IUserRepository";
 import userModel from "../models/user";
 import { collectorFullDetailsDto } from "../../../dtos/collectorFullDetailsDto";
@@ -27,6 +27,15 @@ export class userRepository extends BaseRepository<IUserDocument> implements IUs
     async findUserByEmail(email: string): Promise<IUser | null> {
         return await this.model.findOne({ email })
     }
+
+    async findByEmailExcludingUserId(email:string, excludedUserId: string): Promise<IUserDocument | null> {
+        try {
+            return await this.model.findOne({ email:email, _id: { $ne: excludedUserId }})
+        } catch (error) {
+            throw new DatabaseError('data base error ')
+        }
+        
+    } 
 
     //find user by google id
     async findUserByGoogleId(googleId: string): Promise<IUser | null> {

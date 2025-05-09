@@ -8,6 +8,7 @@ import { IBaseRepository } from "./IBaseRepository";
 export interface IUserRepository extends BaseRepository<IUserDocument> {
     findUserById(userId: string): Promise<IUser | null>
     findUserByEmail(email: string): Promise<IUser | null>
+    findByEmailExcludingUserId(email: string, _id: string): Promise<IUserDocument | null>
     findUserByGoogleId(googleId: string | undefined): Promise<IUser | null>
     findUserByFacebookId(facebookId: string): Promise<IUser | null>
     saveUser(userData: Partial<IUser>): Promise<IUser>

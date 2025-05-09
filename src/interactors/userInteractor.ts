@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { IUserInteractor } from "../interfaces/interactors/IUserInteractor";
 import { INTERFACE_TYPE } from "../utils/appConst";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
-import { Forbidden, notFound } from "../domain/errors";
+import { conflictError, Forbidden, notFound } from "../domain/errors";
 import { IUser } from "../domain/entities/user";
 import { ICloudinaryService } from "../interfaces/services/ICloudinaryService";
 import { IHashingService } from "../interfaces/services/IHashingService";
@@ -39,6 +39,13 @@ export class userInteractor implements IUserInteractor {
 
         if (image) {
             updatedPayload.image = image
+        }
+
+        if(updatedPayload.email){
+            const isEmailExist = await this.userRepository.findByEmailExcludingUserId(updatedPayload.email, id)
+            if(isEmailExist){
+                throw new conflictError('eamil already taken')
+            }
         }
         return await this.userRepository.findByIdAndUpdate(id, updatedPayload)
 
