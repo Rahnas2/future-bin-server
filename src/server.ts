@@ -8,8 +8,7 @@ import cookieParser from 'cookie-parser'
 import connectDB from "./infrastructure/config/mongodb";
 import { initializeCronJobs } from './infrastructure/config/cronJob';
 
-import cors from 'cors'
-
+import cors from './infrastructure/config/cors'
 
 import container from './infrastructure/config/container';
 
@@ -40,14 +39,9 @@ import overviewRouter from './adapters/routes/overview'
 
 import { errorHandler } from './adapters/middleware/errorHandler';
 
-
-
 const PORT = process.env.PORT || 7070
 
-app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true
-}))
+app.use(cors)
 
 app.use('/api/webhook', webhookRouter)
 
