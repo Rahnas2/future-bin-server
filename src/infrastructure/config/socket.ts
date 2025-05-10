@@ -5,6 +5,7 @@ import { INTERFACE_TYPE } from '../../utils/appConst';
 import { IRedisRepository } from '../../interfaces/repositories/IRedisRepository';
 import { IMessageRepository } from '../../interfaces/repositories/IMessageRepository';
 import { IChatRepository } from '../../interfaces/repositories/IChatRepository';
+import { whitelist } from './corsWhitelist.ts';
 
 @injectable()
 export class SocketConfig {
@@ -18,7 +19,14 @@ export class SocketConfig {
     initializeSocket(server: HTTPServer) {
         this.io = new Server(server, {
             cors: {
-                origin: 'http://localhost:5173',
+                origin: (origin, callback) => {
+                    if (!origin) return callback(null, true);
+                    if (whitelist.includes(origin)) {
+                        callback(null, true);
+                    } else {
+                        callback(new Error('Not allowed by CORS (socket)'));
+                    }
+                },
                 methods: ['GET', 'POST'],
                 credentials: true,
             },
@@ -47,8 +55,8 @@ export class SocketConfig {
                     this.io?.to(receiverId).emit('new-chat');
                 } else {
                     await this.chatRepository.findByIdAndUpdate(chat._id.toString(), { lastMessage: { message, senderId: _id, isImage } })
-                    const hasUnreadMessage = await this.messagRepository.findOne({chatId: chat._id, receiverId, isRead: false})
-                    if(!hasUnreadMessage){
+                    const hasUnreadMessage = await this.messagRepository.findOne({ chatId: chat._id, receiverId, isRead: false })
+                    if (!hasUnreadMessage) {
                         this.io?.to(receiverId).emit('new-chat')
                     }
                 }

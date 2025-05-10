@@ -1,9 +1,6 @@
 import cors, { CorsOptions } from 'cors'
 
-const whitelist = [
-  process.env.CLIENT_URL,
-  'http://localhost:5173'
-];
+import { whitelist } from './corsWhitelist.ts';
 
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
