@@ -27,7 +27,6 @@ router.post('/register/complete-profile', upload.fields([
     controller.onCompleteProfile)
     
     
-
 //otp    
 router.post('/resent-otp', controller.onResentOtp)
 

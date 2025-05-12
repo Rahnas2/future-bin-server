@@ -44,7 +44,7 @@ export class authInteractor implements IAuthInteractor {
     async basicInfo(userData: basicInfoDto) {
 
         const isEmailExist = await this.userRepository.findUserByEmail(userData.email)
-        
+
         if (isEmailExist) {
             throw new conflictError('Email is already taken')
         }
@@ -76,16 +76,16 @@ export class authInteractor implements IAuthInteractor {
 
         //decode and validate id token
         const decoded = await this.jwtService.decodeToken(tokens.id_token)
-        if(!decoded){
+        if (!decoded) {
             throw new InvalidCredentialsError('invalid')
         }
 
         // destructor recured values
-        const {sub, given_name, family_name, email } = decoded
+        const { sub, given_name, family_name, email } = decoded
 
         //check handle user already exist
         const user = await this.userRepository.findUserByEmail(email)
-        if(user){
+        if (user) {
             throw new conflictError('already exist')
         }
 
@@ -105,22 +105,22 @@ export class authInteractor implements IAuthInteractor {
             firstName: given_name,
             lastName: family_name,
             email: email
-        })    
+        })
 
         //return email to controller
         return email
     }
 
     async basicInfoFB(userId: string, token: string): Promise<string> {
-        
+
         //get user details
         const result = await this.facebookAuthService.getUserByFacebookIdAndAccessToken(userId, token)
-        const {id, first_name, last_name, email} = result.data
+        const { id, first_name, last_name, email } = result.data
         console.log('result ', result)
 
         const user = await this.userRepository.findUserByEmail(email)
         console.log('user ', user)
-        if(user){
+        if (user) {
             throw new conflictError('already exist')
         }
 
@@ -193,21 +193,34 @@ export class authInteractor implements IAuthInteractor {
         let idCard = { front: '', back: '' };
         let vehicleImage: null | string = null
 
-        //store files to cloudinary
-        if (files) {
-            if (files.image) {
-                image = await this.cloudinaryService.uploadImage(files.image[0].buffer, 'profile-images')
-            }
-            if (files.idCardFront) {
-                idCard.front = await this.cloudinaryService.uploadImage(files.idCardFront[0].buffer, 'id-cards')
-            }
-            if (files.idCardBack) {
-                idCard.back = await this.cloudinaryService.uploadImage(files.idCardBack[0].buffer, 'id-cards')
-            }
-            if (files.vehicleImage) {
-                vehicleImage = await this.cloudinaryService.uploadImage(files.vehicleImage[0].buffer, 'vehicle-images')
-            }
+        const uploadPromises = [];
+
+        if (files.image) {
+            uploadPromises.push(
+                this.cloudinaryService.uploadImage(files.image[0].buffer, 'profile-images')
+                    .then(url => image = url)
+            );
         }
+        if (files.idCardFront) {
+            uploadPromises.push(
+                this.cloudinaryService.uploadImage(files.idCardFront[0].buffer, 'id-cards')
+                    .then(url => idCard.front = url)
+            );
+        }
+        if (files.idCardBack) {
+            uploadPromises.push(
+                this.cloudinaryService.uploadImage(files.idCardBack[0].buffer, 'id-cards')
+                    .then(url => idCard.back = url)
+            );
+        }
+        if (files.vehicleImage) {
+            uploadPromises.push(
+                this.cloudinaryService.uploadImage(files.vehicleImage[0].buffer, 'vehicle-images')
+                    .then(url => vehicleImage = url)
+            );
+        }
+
+        await Promise.all(uploadPromises);
 
         //user role
         const role = userData.role
@@ -300,7 +313,7 @@ export class authInteractor implements IAuthInteractor {
         }
 
         //check the user is blocked
-        if(user.isBlock){
+        if (user.isBlock) {
             throw new Forbidden('you are blocked by admin')
         }
 
@@ -317,17 +330,17 @@ export class authInteractor implements IAuthInteractor {
         //get user details
         const result = await this.facebookAuthService.getUserByFacebookIdAndAccessToken(userId, token)
         console.log('result ', result.data)
-        
+
         //find user by facbook id
         const user = await this.userRepository.findUserByFacebookId(result.data.id)
 
         //check user exist in database
-        if(!user){
+        if (!user) {
             throw new notFound('user not found')
         }
 
         //check user is blocked
-        if(user.isBlock){
+        if (user.isBlock) {
             throw new notFound('you are blocked by admin')
         }
 
@@ -335,13 +348,13 @@ export class authInteractor implements IAuthInteractor {
         const accessToken = this.jwtService.generateAccessToken({ _id: user._id, role: user.role })
         const refreshToken = this.jwtService.generateRefreshToken({ _id: user._id, role: user.role })
 
-        return { accessToken, refreshToken, role: user.role}
+        return { accessToken, refreshToken, role: user.role }
     }
 
     async forgotPassword(email: string): Promise<void> {
         const user = await this.userRepository.findUserByEmail(email)
 
-        if(!user){
+        if (!user) {
             throw new notFound('user not found')
         }
 
@@ -360,7 +373,7 @@ export class authInteractor implements IAuthInteractor {
 
         const user = await this.userRepository.findUserByEmail(email)
 
-        if(!user){
+        if (!user) {
             throw new notFound('user not found')
         }
 
