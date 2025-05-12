@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { IStripService } from "../../interfaces/services/IStripService";
 import Stripe from "stripe";
-import { notFound } from "../../domain/errors";
+import { InvalidCredentialsError, notFound } from "../../domain/errors";
 import { INTERFACE_TYPE } from "../../utils/appConst";
 import { INotificationRepository } from "../../interfaces/repositories/INotificationRepository";
 import { ISocketService } from "../../interfaces/services/ISocketService";
@@ -97,11 +97,26 @@ export class stripeService implements IStripService {
     }
 
     async handleWebhookEvent(rawBody: Buffer, signature: string): Promise<void> {
-        const event = this.stripe.webhooks.constructEvent(
-            rawBody,
-            signature,
-            process.env.STRIPE_WEBHOOK_SECRET!
-        );
+        let event: Stripe.Event;
+        try {
+            event = this.stripe.webhooks.constructEvent(
+                rawBody,
+                signature,
+                process.env.PLATFORM_STRIPE_WEBHOOK_SECRET!
+            )
+        } catch (error) {
+            try {
+                event = this.stripe.webhooks.constructEvent(
+                    rawBody,
+                    signature,
+                    process.env.CONNECT_ACC_STRIPE_WEBHOOK_SECRET!
+                )
+            } catch (error) {
+                console.error(`Webhook signature verification failed: ${error}`)
+                throw new InvalidCredentialsError('webhook signature varification faild')
+            }
+        }
+
 
         console.log('webhook event ', event)
         switch (event.type) {
