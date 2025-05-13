@@ -159,8 +159,8 @@ export class stripeService implements IStripService {
         // Create notification
         const notificationType = isPaymentSuccess ? 'payment_success' : 'payment_failed';
         const message = isPaymentSuccess
-            ? `Payment of $${amount} completed successfully`
-            : `Payment of $${amount} failed. Please try again`;
+            ? `Payment of ₹${amount} completed successfully`
+            : `Payment of ₹${amount} failed. Please try again`;
 
         const notification = await this.notificationRepository.create({
             receiverId: userId,
@@ -290,7 +290,7 @@ export class stripeService implements IStripService {
         const notification = await this.notificationRepository.create({
             receiverId: userId,
             type: 'payment_failed',
-            message: `Payment of $${paymentIntent.amount / 100} failed`,
+            message: `Payment of ₹${paymentIntent.amount / 100} failed`,
         })
 
         // Send real-time notification

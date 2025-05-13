@@ -68,6 +68,9 @@ export class collectorRepoitory extends BaseRepository<ICollectorDocument> imple
                     }
                 },
                 {
+                    $sort: { 'createdAt': -1 }
+                },
+                {
                     $project: {
                         firstName: 1,
                         lastName: 1,

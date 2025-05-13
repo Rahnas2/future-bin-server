@@ -138,17 +138,6 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             paymentIntentId: paymentIntent.id
         }
 
-
-        //if the request was subscription update the (subscriptionPlanId) on the user collection,
-        //and cancell the previous subscription 
-        // if (request.type === 'subscription') {
-        //     await this.userRepository.findByIdAndUpdate(request.userId, { subscriptionPlanId: request.subscription.planId })
-
-        //     await this.pickupRequestRepository.findByUserIdAndStatusThenUpdate(request.userId, 'accepted', { status: 'canelled' })
-        // }
-
-
-
         const updatedRequest = await this.pickupRequestRepository.findByIdAndUpdate(requestId, updatedData)
 
         if (paymentIntent) {
@@ -156,7 +145,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             const data = {
                 receiverId: updatedRequest.userId,
                 type: "pickup_accepted" as notificationTypesDto,
-                message: `your ${request.type} is accepted by ${collectorName} please pay ${request.totalAmount} to confirm the request`,
+                message: `your ${request.type} is accepted by ${collectorName} please pay ₹${request.totalAmount} to confirm the request`,
                 requestId
             }
 
@@ -191,7 +180,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         //For Refund
         let refundAmount = 0
         if (result.paidAmount > 0 && result.type === 'on-demand' && role === 'collector') {
-            refundAmount = result.totalAmount
+            refundAmount = result.paidAmount
         } else if (result.paidAmount > 0 && result.type === 'subscription' && role === 'collector') {
             const totalAmount = result.totalAmount;
             const totalPickups = result.subscription.totalPickups;
@@ -241,26 +230,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
             const collector = await this.collectorRepoitory.finByUserId(result.collectorId as string)
             if (role === 'resident' && result.paidAmount > 0 && collector[0].stripeAccountId) {
 
-                let serviceAmount = result.totalAmount * 0.5
-
-                // if (result.type === 'subscription') {
-                //     const completedPickups = await this.scheduledPickupRepository.countFilterDocument({ pickupRequestId: result._id, status: 'completed' })
-                //     if (completedPickups > 0) {
-                //         const perPickupServiceAmount = serviceAmount / result.subscription.totalPickups;
-                //         serviceAmount = completedPickups * perPickupServiceAmount
-                //     } else {
-                //         serviceAmount = 0
-                //     }
-                // }
-
-                // if (serviceAmount > 0) {
-                //     const transferAmount = Math.round(serviceAmount * 100)
-                //     const transfer = await this.stripService.createTransfer({
-                //         amount: transferAmount,
-                //         currency: 'usd',
-                //         destination: collector[0].stripeAccountId,
-                //         transfer_group: result._id.toString(),
-                //     })
+                let serviceAmount = result.paidAmount * 0.5
 
                 const transferAmount = Math.round(serviceAmount * 100)
                 const transfer = await this.stripService.createTransfer({
