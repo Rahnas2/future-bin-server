@@ -170,7 +170,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
 
         // IF Status Was accepted Delete Payment notificaion 
         if(status === 'accepted'){
-        await this.notificationRepository.deleteByRequestId(id.)
+        await this.notificationRepository.deleteByRequestId(id)
         }
 
         const updatedData = {
