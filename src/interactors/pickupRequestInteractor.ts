@@ -166,6 +166,13 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
     //Cancel pickup request for both on-demand and subscription 
     async cancelRequest(id: string, role: "resident" | "collector", data: Partial<requestCancellationDto>): Promise<IPickupeRequestDocument> {
 
+        const { status } = await this.pickupRequestRepository.checkRequestStatusById(id)
+
+        // IF Status Was accepted Delete Payment notificaion 
+        if(status === 'accepted'){
+        await this.notificationRepository.deleteByRequestId(id.)
+        }
+
         const updatedData = {
             status: 'cancelled',
             cancellation: {
@@ -176,6 +183,7 @@ export class pickupRequestInteractor implements IPickupRequestInteractor {
         }
 
         const result = await this.pickupRequestRepository.findByIdAndUpdate(id, updatedData)
+
 
         //For Refund
         let refundAmount = 0
