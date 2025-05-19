@@ -7,7 +7,7 @@ export function scheduleCancelOverduePickupsJob() {
   const scheduledPickupInteractor = container.get<scheduledPickupInteractor>(INTERFACE_TYPE.scheduledPickupInteractor);
 
   // Run daily at 23:59
-  cron.schedule('* * * * *', async () => {
+  cron.schedule('59 23 * * *', async () => {
     console.log('Running scheduled pickup cancellation job...');
     const result = await scheduledPickupInteractor.cancelScheduledPickups();
     if (!result) {

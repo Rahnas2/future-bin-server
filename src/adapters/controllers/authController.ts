@@ -216,6 +216,7 @@ export class authController {
 
             if(!email){
                 res.status(400).json({message: 'email is required'})
+                return 
             }
 
             await this.interactor.forgotPassword(email)
