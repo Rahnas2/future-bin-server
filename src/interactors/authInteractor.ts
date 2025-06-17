@@ -1,27 +1,20 @@
 import { inject, injectable } from "inversify";
-import { IAuthRepository } from "../interfaces/repositories/IAuthRepository";
 import { INTERFACE_TYPE } from "../utils/appConst";
 import { IOtpService } from "../interfaces/services/IOtpService";
 import generateOTP from "../utils/generateOTP";
 import { basicInfoDto } from "../dtos/basicInfoDto";
 import { IRedisRepository } from "../interfaces/repositories/IRedisRepository";
-import { IUser } from "../domain/entities/user";
-import { ICollector } from "../domain/entities/collector";
 import { ICloudinaryService } from "../interfaces/services/ICloudinaryService";
 import { IAuthInteractor } from "../interfaces/interactors/IAuthInteractor";
 import { IJwtService } from "../interfaces/services/IJwtService";
 import { IHashingService } from "../interfaces/services/IHashingService";
 import { loginDto } from "../dtos/loginDtos";
 import { BlockedUserError, conflictError, Forbidden, InvalidCredentialsError, notFound } from "../domain/errors";
-import { getGoogleOAuthConfig } from "../utils/oauthUtils";
-import axios from "axios";
 import { authResponseDto } from "../dtos/authResponseDto";
 import { TokenResponseDto } from "../dtos/tokenResponseDto";
 
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
-import { googleAuthService } from "../infrastructure/services/googleAuthService";
 import { IGoogleAuthService } from "../interfaces/services/IGoogleAuthService";
-import { decode } from "punycode";
 import { IFacebookAuthService } from "../interfaces/services/IFacebookAuthService";
 import { ICollectorRepository } from "../interfaces/repositories/ICollectorRepository";
 

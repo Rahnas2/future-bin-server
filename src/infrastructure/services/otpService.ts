@@ -7,7 +7,6 @@ import redisClient from "../config/redis";
 export class otpService implements IOtpService{
     
     async sentOtp (email: string, otp: string) {
-        console.log('emial', email , 'otp ', otp)
         const mailOption = {
             from: process.env.EMAIL_USER,
             to: email,

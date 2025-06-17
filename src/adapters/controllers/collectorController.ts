@@ -4,6 +4,7 @@ import { INTERFACE_TYPE } from "../../utils/appConst";
 import { IUserManagmentInteractor } from "../../interfaces/interactors/IUserManagmentInteractor";
 import { AuthRequest } from "../../dtos/authRequestDto";
 import { ICollectorInteractor } from "../../interfaces/interactors/ICollectorInteractor";
+import { HttpStatusCode } from "../../utils/statusCode";
 
 @injectable()
 export class collectorController {
@@ -16,7 +17,7 @@ export class collectorController {
         try {
             const userId = req._id
             const collector = await this.userManagementInteractor.fetchCollectorDetails(userId as string)
-            res.status(200).json({ message: 'success', collector })
+            res.status(HttpStatusCode.OK).json({ message: 'success', collector })
         } catch (error) {
             next(error)
         }
@@ -28,12 +29,12 @@ export class collectorController {
             const { _id, ...data } = req.body
 
             if (!_id) {
-                res.status(400).json({ message: 'id is missing' })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'id is missing' })
                 return
             }
 
             const updatedCollector = await this.collectorInteractor.patchUpdate(_id, data)
-            res.status(200).json({message: 'success', updatedCollector})
+            res.status(HttpStatusCode.OK).json({ message: 'success', updatedCollector })
         } catch (error) {
             next(error)
         }
@@ -44,50 +45,50 @@ export class collectorController {
         try {
             const collectorId = req._id
 
-            if(!collectorId){
-                res.status(400).json({message: 'collector id is missing '})
-                return 
+            if (!collectorId) {
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'collector id is missing ' })
+                return
             }
 
             const summary = await this.collectorInteractor.getMyEarnings(collectorId)
 
-            res.status(200).json({message: 'success', summary})
+            res.status(HttpStatusCode.OK).json({ message: 'success', summary })
         } catch (error) {
             next(error)
         }
     }
 
     //Generate on boarding link for conncted account
-    onGetOnboardingLink = async(req: Request, res: Response, next: NextFunction) => {
+    onGetOnboardingLink = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { stripeAccountId } = req.params
 
             const url = await this.collectorInteractor.generateOnboardingLink(stripeAccountId)
 
-            res.status(200).json({message: 'success', url})
+            res.status(HttpStatusCode.OK).json({ message: 'success', url })
         } catch (error) {
             next(error)
         }
     }
 
-    onWithdrawBalance = async(req: AuthRequest, res: Response, next: NextFunction) => {
+    onWithdrawBalance = async (req: AuthRequest, res: Response, next: NextFunction) => {
         try {
             const collectorId = req._id
 
             const { amount } = req.body
-            if(!collectorId) {
-                res.status(400).json({message: 'collector id is missing '})
-                return 
+            if (!collectorId) {
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'collector id is missing ' })
+                return
             }
 
-            if(!amount || amount < 1){
-                res.status(400).json({message: 'mininum withdrawal amount is 1'})
-                return 
+            if (!amount || amount < 1) {
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'mininum withdrawal amount is 1' })
+                return
             }
 
             const payout = await this.collectorInteractor.withdrawBalance(collectorId, amount)
 
-            res.status(200).json({message: 'success', payout})
+            res.status(HttpStatusCode.OK).json({ message: 'success', payout })
 
         } catch (error) {
             next(error)

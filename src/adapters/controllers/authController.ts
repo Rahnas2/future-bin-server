@@ -3,6 +3,8 @@ import { inject, injectable } from "inversify";
 import { IAuthInteractor } from "../../interfaces/interactors/IAuthInteractor";
 import { INTERFACE_TYPE } from "../../utils/appConst";
 import { notFound } from "../../domain/errors";
+import { HttpStatusCode } from "../../utils/statusCode";
+
 
 
 @injectable()
@@ -22,16 +24,9 @@ export class authController {
             const userData = req.body.userData
 
             await this.interactor.basicInfo(userData)
-            res.status(200).json({ messge: 'success', email: userData.email })
+            res.status(HttpStatusCode.OK).json({ messge: 'success', email: userData.email })
             return
-        } catch (error: any) {
-
-            if (error.message === "Email is already taken") {
-                res.status(400).json({ message: "Email is already taken" });
-                return
-
-            }
-
+        } catch (error) {
             next(error)
         }
     }
@@ -43,30 +38,30 @@ export class authController {
             const { code } = req.query
 
             if (!code) {
-                res.status(400).json({ message: 'missing authorization code' })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'missing authorization code' })
             }
 
             const email = await this.interactor.basicInfoGoogle(code as string)
 
-            res.status(200).json({ message: "success", email })
+            res.status(HttpStatusCode.OK).json({ message: "success", email })
         } catch (error) {
             next(error)
         }
     }
 
-    //registeration step 1 (facebook)
+    //registeration step 1 (faceboOK)
     onbasicInfoFB = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { userId, token } = req.body
-            console.log('facebook register body ', req.body)
-            if (!userId || userId == '' || !token || token == '') {
-                res.status(400).json({ message: "userId and accessToken are required" });
+            const { userId, tOKen } = req.body
+            console.log('faceboOK register body ', req.body)
+            if (!userId || userId == '' || !tOKen || tOKen == '') {
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "userId and accessTOKen are required" });
                 return
             }
 
-            const email = await this.interactor.basicInfoFB(userId, token)
+            const email = await this.interactor.basicInfoFB(userId, tOKen)
 
-            res.status(200).json({ message: 'success', email })
+            res.status(HttpStatusCode.OK).json({ message: 'success', email })
 
         } catch (error) {
             next(error)
@@ -79,7 +74,7 @@ export class authController {
             console.log('body ', req.body)
             const result = await this.interactor.verifyOtp(email, otp)
             console.log('result ', result)
-            result ? res.status(200).json({ message: 'success' }) : res.status(401).json({ message: 'invalid otp' })
+            result ? res.status(HttpStatusCode.OK).json({ message: 'success' }) : res.status(401).json({ message: 'invalid otp' })
             return
         } catch (error) {
             console.error('error ', error)
@@ -92,7 +87,7 @@ export class authController {
             const { email } = req.body
             await this.interactor.resentOtp(email)
 
-            res.status(200).json({ message: `new otp sent to ${email}` })
+            res.status(HttpStatusCode.OK).json({ message: `new otp sent to ${email}` })
         } catch (error) {
             next(error)
         }
@@ -103,18 +98,17 @@ export class authController {
             const { email, role } = req.body
             console.log('req body ', req.body)
             await this.interactor.updateRole(email, role)
-            res.status(200).json({ message: 'success' })
+            res.status(HttpStatusCode.OK).json({ message: 'success' })
         } catch (error) {
             next(error)
         }
     }
 
     onCompleteProfile = async (req: Request, res: Response, next: NextFunction) => {
-        console.log('hello ')
         try {
             const data = req.body
-            console.log('befor reponse', data)
             const response = await this.interactor.completeProfile(data, req.files as Record<string, Express.Multer.File[]>)
+            
             console.log('response ', response)
             const { accessToken, refreshToken, role } = response
 
@@ -124,9 +118,7 @@ export class authController {
                 sameSite: 'strict',
                 maxAge: 1 * 24 * 60 * 60 * 1000,
             })
-            console.log('complete profile backend successfull', accessToken)
-            console.log('role ', role)
-            res.status(201).json({ message: 'success', accessToken, role })
+            res.status(HttpStatusCode.CREATED).json({ message: 'success', accessToken, role })
         } catch (error) {
             console.log('oncomplet profjie error ', error)
             next(error)
@@ -149,7 +141,7 @@ export class authController {
                 maxAge: 1 * 24 * 60 * 60 * 1000,
             })
 
-            res.status(200).json({ message: 'success', accessToken, role })
+            res.status(HttpStatusCode.OK).json({ message: 'success', accessToken, role })
         } catch (error) {
             next(error)
         }
@@ -161,7 +153,7 @@ export class authController {
 
             console.log('query ', code)
             if (!code) {
-                res.status(400).json({ message: 'missing authorization code' })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'missing authorization code' })
                 return
             }
 
@@ -176,25 +168,25 @@ export class authController {
                 maxAge: 1 * 24 * 60 * 60 * 1000,
             })
 
-            res.status(200).json({ message: 'success', accessToken, role })
+            res.status(HttpStatusCode.OK).json({ message: 'success', accessToken, role })
         } catch (error) {
             next(error)
         }
     }
 
-    //facebook login
-    onFacebookLogin = async (req: Request, res: Response, next: NextFunction) => {
+    //faceboOK login
+    onFaceboOKLogin = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            //destucture user id and acccess token from body
-            const { userId, token } = req.body
+            //destucture user id and acccess tOKen from body
+            const { userId, tOKen } = req.body
 
-            //verify user ID and access token
-            if (!userId || userId == '' || !token || token == '') {
-                res.status(400).json({ message: "userId and accessToken are required" });
+            //verify user ID and access tOKen
+            if (!userId || userId == '' || !tOKen || tOKen == '') {
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "userId and accessTOKen are required" });
                 return
-            }
+            } 
 
-            const { accessToken, refreshToken, role } = await this.interactor.facebookLogin(userId, token)
+            const { accessToken, refreshToken, role } = await this.interactor.facebookLogin(userId, tOKen)
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
@@ -203,7 +195,7 @@ export class authController {
                 maxAge: 1 * 24 * 60 * 60 * 1000,
             })
 
-            res.status(200).json({ message: 'success', accessToken, role })
+            res.status(HttpStatusCode.OK).json({ message: 'success', accessToken, role })
 
         } catch (error) {
             next(error)
@@ -215,13 +207,13 @@ export class authController {
             const { email } = req.body
 
             if(!email){
-                res.status(400).json({message: 'email is required'})
+                res.status(HttpStatusCode.BAD_REQUEST).json({message: 'email is required'})
                 return 
             }
 
             await this.interactor.forgotPassword(email)
 
-            res.status(200).json({message: 'success'})
+            res.status(HttpStatusCode.OK).json({message: 'success'})
         } catch (error) {
             next(error)
         }
@@ -237,26 +229,26 @@ export class authController {
 
             await this.interactor.resetPassword(email, newPassword)
 
-            res.status(200).json({message: 'success'})
+            res.status(HttpStatusCode.OK).json({message: 'success'})
             
         } catch (error) {
             next(error)
         }
     }
 
-    onRefreshToken = async (req: Request, res: Response, next: NextFunction) => {
+    onRefreshTOKen = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const refreshToken = req.cookies.refreshToken
-            console.log('refresh token -> ', refreshToken)
+            console.log('refresh tOKen -> ', refreshToken)
             if (!refreshToken) {
-                res.status(400).json({ message: "Unauthorized" })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "Unauthorized" })
                 return
             }
 
             const { accessToken, role } = await this.interactor.refreshToken(refreshToken)
             console.log('result', role)
 
-            res.status(200).json({ message: 'success', accessToken, role })
+            res.status(HttpStatusCode.OK).json({ message: 'success', accessToken, role })
         } catch (error) {
             console.log('rfresth errror ', error)
             next(error)
@@ -265,8 +257,8 @@ export class authController {
 
     onLogOut = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            res.clearCookie('refreshToken')
-            res.status(200).json({ message: 'success' })
+            res.clearCookie('refreshTOKen')
+            res.status(HttpStatusCode.OK).json({ message: 'success' })
         } catch (error) {
             next(error)
         }

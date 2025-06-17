@@ -3,6 +3,7 @@ import { INTERFACE_TYPE } from "../../utils/appConst";
 import { ITransactionInteractor } from "../../interfaces/interactors/ITransactionInteractor";
 import { NextFunction, Response } from "express";
 import { AuthRequest } from "../../dtos/authRequestDto";
+import { HttpStatusCode } from "../../utils/statusCode";
 
 @injectable()
 export class transactionController {
@@ -16,7 +17,7 @@ export class transactionController {
             const page = parseInt(req.query.page as string) || 1
             const limit = parseInt(req.query.limit as string) || 10
             const { transactions, total } = await this.transactionInteractor.transactionHistory(userId as string, role as string, page, limit)
-            res.status(200).json({ message: 'success', transactions, totalPages: Math.ceil(total / limit) })
+            res.status(HttpStatusCode.OK).json({ message: 'success', transactions, totalPages: Math.ceil(total / limit) })
         } catch (error) {
             next(error)
         }
@@ -36,18 +37,18 @@ export class transactionController {
                 endDate = req.query.endDate as string;
 
                 if (!startDate || !endDate) {
-                    res.status(400).json({ message: 'Start date and end date are required for custom filter.' });
+                    res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'Start date and end date are required for custom filter.' });
                     return
                 }
             }
 
             const analytics = await this.transactionInteractor.analytics(filter, type, startDate, endDate)
 
-            res.status(200).json({ message: 'success', analytics })
+            res.status(HttpStatusCode.OK).json({ message: 'success', analytics })
 
-            } catch (error) {
-                next(error)
-            }
+        } catch (error) {
+            next(error)
         }
+    }
 
 }

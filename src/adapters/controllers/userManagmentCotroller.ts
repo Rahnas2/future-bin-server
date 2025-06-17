@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express"
 import { inject, injectable } from "inversify"
 import { INTERFACE_TYPE } from "../../utils/appConst"
 import { IUserManagmentInteractor } from "../../interfaces/interactors/IUserManagmentInteractor"
+import { HttpStatusCode } from "../../utils/statusCode"
 
 @injectable()
 export class userManagmentController {
@@ -22,7 +23,7 @@ export class userManagmentController {
 
             console.log('users ', users)
 
-            res.status(200).json({ message: 'success', users, currentPage: page, totalPages: Math.ceil(total / limit) })
+            res.status(HttpStatusCode.OK).json({ message: 'success', users, currentPage: page, totalPages: Math.ceil(total / limit) })
         } catch (error) {
             next(error)
         }
@@ -36,7 +37,7 @@ export class userManagmentController {
             console.log('user id ', userId)
             const {user, activeSubscription, totalOnDemandPickupsCount} = await this.userManagmentInteratcor.fetchUserDetail(userId as string)
 
-            res.status(200).json({ message: 'success', user, activeSubscription, totalOnDemandPickupsCount})
+            res.status(HttpStatusCode.OK).json({ message: 'success', user, activeSubscription, totalOnDemandPickupsCount})
         } catch (error) {
             next(error)
         }
@@ -49,7 +50,7 @@ export class userManagmentController {
 
             await this.userManagmentInteratcor.toggleStatus(userId)
 
-            res.status(200).json({ message: 'success' })
+            res.status(HttpStatusCode.OK).json({ message: 'success' })
         } catch (error) {
             next(error)
         }
@@ -67,7 +68,7 @@ export class userManagmentController {
 
             const {collectors, total} = await this.userManagmentInteratcor.fetchCollectors(approvedStatus as string, page, limit, search)
 
-            res.status(200).json({ message: 'success', collectors, currentPage: page, totalPages: Math.ceil(total / limit) })
+            res.status(HttpStatusCode.OK).json({ message: 'success', collectors, currentPage: page, totalPages: Math.ceil(total / limit) })
         } catch (error) {
             next(error)
         }
@@ -78,7 +79,7 @@ export class userManagmentController {
             const { userId } = req.query
             const collector = await this.userManagmentInteratcor.fetchCollectorDetails(userId as string)
 
-            res.status(200).json({ message: 'success', collector })
+            res.status(HttpStatusCode.OK).json({ message: 'success', collector })
         } catch (error) {
             next(error)
         }
@@ -91,7 +92,7 @@ export class userManagmentController {
 
             await this.userManagmentInteratcor.acceptRequest(collectorId, name, email)
 
-            res.status(200).json({ message: 'accepted collector request' })
+            res.status(HttpStatusCode.OK).json({ message: 'accepted collector request' })
         } catch (error) {
             next(error)
         }
@@ -105,7 +106,7 @@ export class userManagmentController {
 
             await this.userManagmentInteratcor.rejectRequest(collectorId, name, email)
 
-            res.status(200).json({ message: 'rejected collector request' })
+            res.status(HttpStatusCode.OK).json({ message: 'rejected collector request' })
         } catch (error) {
             next(error)
         }

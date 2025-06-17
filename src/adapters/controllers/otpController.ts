@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express'
 import {injectable, inject} from 'inversify'
 import { IOtpInteractor } from '../../interfaces/interactors/IOtpInteractor'
 import { INTERFACE_TYPE } from '../../utils/appConst'
+import { HttpStatusCode } from '../../utils/statusCode'
 
 
 @injectable()
@@ -22,7 +23,7 @@ export class otpController {
 
             await this.interactor.sentOtp(email)
 
-            res.status(200).json({message: 'success'})
+            res.status(HttpStatusCode.OK).json({message: 'success'})
             return 
         } catch (error) {
             console.error('error ', error)
@@ -36,7 +37,7 @@ export class otpController {
 
             await this.interactor.verifyOtp(email, otp)
 
-            res.status(200).json({message: 'otp verifies successfully'})
+            res.status(HttpStatusCode.OK).json({message: 'otp verifies successfully'})
         } catch (error) {
             console.log('error ', error)
             next(error)

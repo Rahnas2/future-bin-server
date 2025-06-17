@@ -1,8 +1,3 @@
-import { overviewController } from "../adapters/controllers/overviewController";
-import { overviewInteractor } from "../interactors/overviewInteractor";
-
-
-
 export const INTERFACE_TYPE = {
     
     //controllers

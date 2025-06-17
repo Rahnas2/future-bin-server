@@ -78,7 +78,7 @@ export class SocketConfig {
             });
 
             // Handle disconnection
-            socket.on('disconnect', async () => {
+            socket.on('disconnect', async () => {``
                 console.log(`Socket disconnected: ${socket.id}`);
 
                 if (_id) {

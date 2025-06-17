@@ -3,6 +3,7 @@ import { INTERFACE_TYPE } from "../../utils/appConst";
 import { IScheduledPickupInteractor } from "../../interfaces/interactors/IScheduledPickupInteractor";
 import { AuthRequest } from "../../dtos/authRequestDto";
 import { NextFunction, Request, Response } from "express";
+import { HttpStatusCode } from "../../utils/statusCode";
 
 @injectable()
 export class scheduledPickupController {
@@ -12,12 +13,12 @@ export class scheduledPickupController {
         try {
             const collectorId = req._id;
             if (!collectorId) {
-                res.status(400).json({ message: 'Collector ID missing' });
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'Collector ID missing' });
                 return
             }
 
             const scheduledPickups = await this.scheduledPickupInteractor.getCollectorScheduledPickups(collectorId);
-            res.status(200).json({ message: 'Success', scheduledPickups });
+            res.status(HttpStatusCode.OK).json({ message: 'Success', scheduledPickups });
         } catch (error) {
             next(error);
         }
@@ -28,31 +29,31 @@ export class scheduledPickupController {
             const scheduledPickupId = req.params.id;
 
             if (!scheduledPickupId) {
-                res.status(400).json({ message: 'Collector ID or Pickup ID missing' });
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'Collector ID or Pickup ID missing' });
                 return
             }
 
             await this.scheduledPickupInteractor.completeScheduledPickup(scheduledPickupId);
 
-            res.status(200).json({ message: 'Scheduled pickup completed successfully' });
+            res.status(HttpStatusCode.OK).json({ message: 'Scheduled pickup completed successfully' });
         } catch (error) {
             next(error)
         }
     }
 
 
-    onGetScheduledPickupsForTheRequest = async(req: Request, res: Response, next: NextFunction) => {
+    onGetScheduledPickupsForTheRequest = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { pickupRequestId } = req.params
 
             if (!pickupRequestId) {
-                res.status(400).json({ message: 'pickup request ID missing' })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'pickup request ID missing' })
                 return
             }
 
             const scheduledPickups = await this.scheduledPickupInteractor.getScheduledPickupsForTheRequest(pickupRequestId)
-               
-            res.status(200).json({message: 'success', scheduledPickups})
+
+            res.status(HttpStatusCode.OK).json({ message: 'success', scheduledPickups })
 
         } catch (error) {
             next(error)

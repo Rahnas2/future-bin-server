@@ -6,6 +6,7 @@ import { IUserManagmentInteractor } from "../../interfaces/interactors/IUserMana
 import { AuthRequest } from "../../dtos/authRequestDto";
 import { IUserInteractor } from "../../interfaces/interactors/IUserInteractor";
 import { notFound } from "../../domain/errors";
+import { HttpStatusCode } from "../../utils/statusCode";
 
 @injectable()
 export class userController {
@@ -17,7 +18,7 @@ export class userController {
 
             const userId = req._id
             const { user } = await this.userManagmentInteratcor.fetchUserDetail(userId as string)
-            res.status(200).json({ message: 'success', user })
+            res.status(HttpStatusCode.OK).json({ message: 'success', user })
         } catch (error) {
             console.error('error from fetch user ', error)
             next(error)
@@ -30,7 +31,7 @@ export class userController {
             const data = req.body
             // const userData = {_id: userId, ...data}
             const user = await this.userInteractor.editUserProfile(userId as string, data, req.file)
-            res.status(200).json({ message: 'success', user })
+            res.status(HttpStatusCode.OK).json({ message: 'success', user })
         } catch (error) {
             console.log('error edit profile ', error)
             next(error)
@@ -48,7 +49,7 @@ export class userController {
 
             await this.userInteractor.changePassword(id, currentPassword, newPassword)
 
-            res.status(200).json({message: 'success'})
+            res.status(HttpStatusCode.OK).json({message: 'success'})
 
         } catch (error) {
             next(error)

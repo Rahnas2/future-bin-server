@@ -22,7 +22,7 @@ export class cloudinaryService implements ICloudinaryService {
             uploadStream.end(imageBuffer)
         })
     }
-    
+
 
     async deleteImage(publicId: string) {
         try {

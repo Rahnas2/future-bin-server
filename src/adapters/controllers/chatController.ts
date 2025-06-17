@@ -3,7 +3,7 @@ import { INTERFACE_TYPE } from "../../utils/appConst";
 import { IChatInteractor } from "../../interfaces/interactors/IChatInteractor";
 import { AuthRequest } from "../../dtos/authRequestDto";
 import { NextFunction, Response, Request } from "express";
-import { stringify } from "querystring";
+import { HttpStatusCode } from "../../utils/statusCode";
 
 @injectable()
 export class chatController {
@@ -15,13 +15,13 @@ export class chatController {
             const userId = req._id
             console.log('user id ', userId)
             if(!userId) {
-                res.status(400).json({message: 'user id is missing'})
+                res.status(HttpStatusCode.BAD_REQUEST).json({message: 'user id is missing'})
                 return
             }
 
             const chatList = await this.chatInteractor.getChatList(userId)
 
-            res.status(200).json({message: 'success', chatList})
+            res.status(HttpStatusCode.OK).json({message: 'success', chatList})
         } catch (error) {
             next(error)
         }
@@ -33,12 +33,12 @@ export class chatController {
             const { receiverId, message } = req.body;
 
             if (!senderId || !receiverId || !message) {
-                res.status(400).json({ message: 'Missing required fields' });
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'Missing required fields' });
                 return
             }
 
             await this.chatInteractor.sentMessage(senderId, receiverId, message);
-            res.status(200).json({ message: 'Message sent successfully' });
+            res.status(HttpStatusCode.OK).json({ message: 'Message sent successfully' });
         } catch (error) {
             next(error);
         }
@@ -50,11 +50,11 @@ export class chatController {
             const { userId2 } = req.query
 
             if(!userId1 || !userId2){
-                res.status(400).json({message: 'missing required fields'})
+                res.status(HttpStatusCode.BAD_REQUEST).json({message: 'missing required fields'})
                 return
             }
             const messages = await this.chatInteractor.getMessagesBetweenTwoUser(userId1, userId2 as string);
-            res.status(200).json({ messages });
+            res.status(HttpStatusCode.OK).json({ messages });
         } catch (error) {
             next(error);
         }
@@ -65,11 +65,11 @@ export class chatController {
             const { chatId } = req.query
             const receiverId = req._id
             if(!chatId || !receiverId){
-                res.status(400).json({message: 'missing required fields'})
+                res.status(HttpStatusCode.BAD_REQUEST).json({message: 'missing required fields'})
                 return
             }
             const messages = await this.chatInteractor.getMessageHistory(chatId as string, receiverId);
-            res.status(200).json({ messages });
+            res.status(HttpStatusCode.OK).json({ messages });
         } catch (error) {
             next(error);
         }

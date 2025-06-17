@@ -1,7 +1,7 @@
 import { IEmailService } from "../../interfaces/services/IEmailService";
 import { registerRequestApproved, registerRequestRejected } from "../../utils/emailContents";
 import transporter from "../config/nodemailerConfig";
-import { injectable, inject } from "inversify";
+import { injectable } from "inversify";
 
 @injectable()
 export class emailService implements IEmailService {

@@ -4,6 +4,7 @@ import { inject, injectable } from "inversify";
 import { INTERFACE_TYPE } from "../../utils/appConst";
 import { INotificationInteractor } from "../../interfaces/interactors/INotificationInteractor";
 import { notFound } from "../../domain/errors";
+import { HttpStatusCode } from "../../utils/statusCode";
 
 
 @injectable()
@@ -21,7 +22,7 @@ export class notificationController {
 
             const notifications = await this.notificationInteractor.fetchAllNotificationOfReceiver(receiverId)
 
-            res.status(200).json({message: 'success', notifications})
+            res.status(HttpStatusCode.OK).json({message: 'success', notifications})
         } catch (error) {
             next(error)
         }
@@ -32,12 +33,12 @@ export class notificationController {
             const { id } = req.query
 
             if(!id){
-                res.status(400).json({message: 'id is missing'})
+                res.status(HttpStatusCode.BAD_REQUEST).json({message: 'id is missing'})
             }
 
             await this.notificationInteractor.deleteNotification(id as string)
 
-            res.status(200).json({message: 'success'})
+            res.status(HttpStatusCode.OK).json({message: 'success'})
         } catch (error) {
             next(error)
         }

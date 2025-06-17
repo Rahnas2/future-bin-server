@@ -3,9 +3,8 @@ import { AuthRequest } from "../../dtos/authRequestDto";
 import { Request, Response, NextFunction } from "express";
 import { INTERFACE_TYPE } from "../../utils/appConst";
 import { IPickupRequestInteractor } from "../../interfaces/interactors/IPickupRequestInteractor";
-import { json } from "body-parser";
-import { emailService } from "../../infrastructure/services/emailService";
 import { IStripService } from "../../interfaces/services/IStripService";
+import { HttpStatusCode } from "../../utils/statusCode";
 
 
 @injectable()
@@ -24,13 +23,13 @@ export class pickupRequestController {
             requestData['userId'] = userId
 
             if (!requestData) {
-                res.status(400).json({ message: 'data is missing' })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'data is missing' })
                 return
             }
 
             await this.pickupRequestInteractor.createPickupRequest(requestData)
 
-            res.status(201).json({ message: 'your request is created please wait for collector acceptence' })
+            res.status(HttpStatusCode.CREATED).json({ message: 'your request is created please wait for collector acceptence' })
 
         } catch (error) {
             next(error)
@@ -44,13 +43,13 @@ export class pickupRequestController {
             const id = req._id
 
             if (!id) {
-                res.status(400).json({ message: 'id is missing' })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'id is missing' })
                 return
             }
 
             const requests = await this.pickupRequestInteractor.getPickupRequestByCollectorId(id)
             console.log('pickup reuqest ', requests)
-            res.status(200).json({ message: 'success', requests })
+            res.status(HttpStatusCode.OK).json({ message: 'success', requests })
         } catch (error) {
             next(error)
         }
@@ -62,13 +61,13 @@ export class pickupRequestController {
             const id = req.params.id
 
             if (!id) {
-                res.status(400).json({ message: 'id not found' })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'id not found' })
                 return
             }
 
             const request = await this.pickupRequestInteractor.getPickupRequestById(id)
 
-            res.status(200).json({ message: 'success', request })
+            res.status(HttpStatusCode.OK).json({ message: 'success', request })
         } catch (error) {
             next(error)
         }
@@ -82,13 +81,13 @@ export class pickupRequestController {
             const { requestId, collectorName } = req.body
 
             if (!collectorId) {
-                res.status(400).json({ message: 'id is missing' })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'id is missing' })
                 return
             }
 
             await this.pickupRequestInteractor.acceptRequest(collectorId, requestId, collectorName)
 
-            res.status(200).json({ message: 'success' })
+            res.status(HttpStatusCode.OK).json({ message: 'success' })
 
         } catch (error) {
             next(error)
@@ -100,13 +99,13 @@ export class pickupRequestController {
             const { _id, ...data } = req.body
 
             if (!_id) {
-                res.status(400).json({ message: 'id is missing' })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'id is missing' })
                 return
             }
 
             const request = await this.pickupRequestInteractor.updatePickupRequest(_id, data)
 
-            res.status(200).json({ message: 'success', request })
+            res.status(HttpStatusCode.OK).json({ message: 'success', request })
         } catch (error) {
             next(error)
         }
@@ -118,13 +117,13 @@ export class pickupRequestController {
             const collectorId = req._id
 
             if (!collectorId) {
-                res.status(400).json({ message: 'id is missing' })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'id is missing' })
                 return
             }
 
             const data = await this.pickupRequestInteractor.getAreaDataForCollector(collectorId)
 
-            res.status(200).json({message: 'success', data})
+            res.status(HttpStatusCode.OK).json({message: 'success', data})
         } catch (error) {
             next(error)
         }
@@ -142,13 +141,13 @@ export class pickupRequestController {
             const limit = parseInt(req.query.limit as string) || 10
 
             if (!id || !role) {
-                res.status(400).json({ message: 'id or role is missing' })
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'id or role is missing' })
                 return
             }
 
             const { requests, total } = await this.pickupRequestInteractor.userPickupRequestHistoryByStatus(id, role, status, page, limit)
 
-            res.status(200).json({ message: 'success', requests, currentPage: page, totalPages: Math.ceil(total / limit), total })
+            res.status(HttpStatusCode.OK).json({ message: 'success', requests, currentPage: page, totalPages: Math.ceil(total / limit), total })
         } catch (error) {
             next(error)
         }
@@ -163,7 +162,7 @@ export class pickupRequestController {
 
             const pickupRequests = await this.pickupRequestInteractor.getPickupRequestsByTypeAndStatus(type, status, role!, userId!)
 
-            res.status(200).json({ message: 'success', pickupRequests })
+            res.status(HttpStatusCode.OK).json({ message: 'success', pickupRequests })
         } catch (error) {
             next(error)
         }
@@ -178,7 +177,7 @@ export class pickupRequestController {
             const { id, data } = req.body
 
             const request = await this.pickupRequestInteractor.cancelRequest(id, role as 'resident' | 'collector', data)
-            res.status(200).json({ message: 'success', request })
+            res.status(HttpStatusCode.OK).json({ message: 'success', request })
         } catch (error) {
             next(error)
         }
@@ -191,7 +190,7 @@ export class pickupRequestController {
 
             await this.pickupRequestInteractor.completeRequest(id)
 
-            res.status(200).json({ message: 'success' })
+            res.status(HttpStatusCode.OK).json({ message: 'success' })
         } catch (error) {
             next(error)
         }

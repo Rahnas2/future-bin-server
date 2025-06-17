@@ -2,6 +2,7 @@ import { Response, Request, NextFunction } from "express";
 import { inject, injectable } from "inversify";
 import { INTERFACE_TYPE } from "../../utils/appConst";
 import { IAdminteractor } from "../../interfaces/interactors/IAdminInteractor";
+import { HttpStatusCode } from "../../utils/statusCode";
 
 @injectable()
 export class adminController {
@@ -9,7 +10,6 @@ export class adminController {
     constructor(@inject(INTERFACE_TYPE.adminInteractor) private adminteractor: IAdminteractor) { }
 
     onLogin = async (req: Request, res: Response, next: NextFunction) => {
-        console.log('login started ',)
         try {
             
             const { email, password, secret } = req.body
@@ -26,7 +26,7 @@ export class adminController {
                 maxAge: 1 * 24 * 60 * 60 * 1000,
             })
 
-            res.status(200).json({ message: 'success', accessToken, role })
+            res.status(HttpStatusCode.OK).json({ message: 'success', accessToken, role })
 
         } catch (error) {
             console.error('hello error ', error)
@@ -40,7 +40,7 @@ export class adminController {
             
             const summary =  await this.adminteractor.getSummary()
 
-            res.status(200).json({message: 'success', summary})
+            res.status(HttpStatusCode.OK).json({message: 'success', summary})
         } catch (error) {
             next(error)
         }
@@ -51,13 +51,13 @@ export class adminController {
         try {
             const { from, to } = req.query
             if(!from || !to) {
-                res.status(400).json({message: 'date is missing '})
+                res.status(HttpStatusCode.BAD_REQUEST).json({message: 'date is missing '})
                 return
             }
 
             const analytics = await this.adminteractor.analytics(from as string, to as string)
 
-            res.status(200).json({message: 'success', analytics})
+            res.status(HttpStatusCode.OK).json({message: 'success', analytics})
         } catch (error) {    
             next(error)
         }    
@@ -68,7 +68,7 @@ export class adminController {
     onRevenue = async(req: Request, res: Response, next: NextFunction) => {
         try {
             const summary = await this.adminteractor.revenue()
-            res.status(200).json({message: 'success', summary})
+            res.status(HttpStatusCode.OK).json({message: 'success', summary})
         } catch (error) {
             next(error)
         }
