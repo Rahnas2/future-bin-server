@@ -2,7 +2,6 @@ import { Container } from "inversify";
 import { INTERFACE_TYPE } from "../../utils/appConst";
 import { otpService } from "../services/otpService";
 import { cloudinaryService } from "../services/cloudinaryService";
-import { authRepository } from "../database/repositories/authRepository";
 import { userRepository } from "../database/repositories/userRepository";
 import { redisRepository } from "../database/repositories/redisRepository";
 import { jwtService } from "../services/jwtService";
@@ -77,7 +76,6 @@ container.bind(INTERFACE_TYPE.stripeService).to(stripeService)
 
 
 //repositories
-container.bind(INTERFACE_TYPE.authRepository).to(authRepository)
 container.bind(INTERFACE_TYPE.userRepository).to(userRepository)
 container.bind(INTERFACE_TYPE.redisRepository).to(redisRepository)
 container.bind(INTERFACE_TYPE.adminRepository).to(adminRepository)

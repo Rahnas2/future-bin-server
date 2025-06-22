@@ -52,14 +52,14 @@ export class authController {
     //registeration step 1 (faceboOK)
     onbasicInfoFB = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { userId, tOKen } = req.body
+            const { userId, token } = req.body
             console.log('faceboOK register body ', req.body)
-            if (!userId || userId == '' || !tOKen || tOKen == '') {
-                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "userId and accessTOKen are required" });
+            if (!userId || userId == '' || !token || token == '') {
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: "userId and accessToken are required" });
                 return
             }
 
-            const email = await this.interactor.basicInfoFB(userId, tOKen)
+            const email = await this.interactor.basicInfoFB(userId, token)
 
             res.status(HttpStatusCode.OK).json({ message: 'success', email })
 
@@ -175,18 +175,18 @@ export class authController {
     }
 
     //faceboOK login
-    onFaceboOKLogin = async (req: Request, res: Response, next: NextFunction) => {
+    onFacebookLogin = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            //destucture user id and acccess tOKen from body
-            const { userId, tOKen } = req.body
+            //destucture user id and acccess token from body
+            const { userId, token } = req.body
 
             //verify user ID and access tOKen
-            if (!userId || userId == '' || !tOKen || tOKen == '') {
+            if (!userId || userId == '' || !token || token == '') {
                 res.status(HttpStatusCode.BAD_REQUEST).json({ message: "userId and accessTOKen are required" });
                 return
             } 
 
-            const { accessToken, refreshToken, role } = await this.interactor.facebookLogin(userId, tOKen)
+            const { accessToken, refreshToken, role } = await this.interactor.facebookLogin(userId, token)
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
@@ -236,7 +236,7 @@ export class authController {
         }
     }
 
-    onRefreshTOKen = async (req: Request, res: Response, next: NextFunction) => {
+    onRefreshToken = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const refreshToken = req.cookies.refreshToken
             console.log('refresh tOKen -> ', refreshToken)
@@ -250,14 +250,14 @@ export class authController {
 
             res.status(HttpStatusCode.OK).json({ message: 'success', accessToken, role })
         } catch (error) {
-            console.log('rfresth errror ', error)
+            console.log('refresth errror ', error)
             next(error)
         }
     }
 
     onLogOut = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            res.clearCookie('refreshTOKen')
+            res.clearCookie('refreshToken')
             res.status(HttpStatusCode.OK).json({ message: 'success' })
         } catch (error) {
             next(error)

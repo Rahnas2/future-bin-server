@@ -40,7 +40,6 @@ export const INTERFACE_TYPE = {
 
     //repositories
     redisRepository: Symbol.for("redisRepository"),
-    authRepository: Symbol.for("authRepository"),
     userRepository: Symbol.for('userRepository'), 
     adminRepository: Symbol.for('adminRepository'),
     subscriptionRepositoy: Symbol.for('subscriptionRepositoy'),
