@@ -108,13 +108,13 @@ export class authController {
         try {
             const data = req.body
             const response = await this.interactor.completeProfile(data, req.files as Record<string, Express.Multer.File[]>)
-            
+
             console.log('response ', response)
             const { accessToken, refreshToken, role } = response
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: false,
+                secure: process.env.NODE_ENV === 'production' ? true : false,
                 sameSite: 'strict',
                 maxAge: 1 * 24 * 60 * 60 * 1000,
             })
@@ -136,8 +136,8 @@ export class authController {
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production' ? true : false,
+                sameSite: 'strict',
                 maxAge: 1 * 24 * 60 * 60 * 1000,
             })
 
@@ -163,8 +163,8 @@ export class authController {
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production' ? true : false,
+                sameSite: 'strict',
                 maxAge: 1 * 24 * 60 * 60 * 1000,
             })
 
@@ -184,14 +184,14 @@ export class authController {
             if (!userId || userId == '' || !token || token == '') {
                 res.status(HttpStatusCode.BAD_REQUEST).json({ message: "userId and accessTOKen are required" });
                 return
-            } 
+            }
 
             const { accessToken, refreshToken, role } = await this.interactor.facebookLogin(userId, token)
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production' ? true : false,
+                sameSite: 'strict',
                 maxAge: 1 * 24 * 60 * 60 * 1000,
             })
 
@@ -206,14 +206,14 @@ export class authController {
         try {
             const { email } = req.body
 
-            if(!email){
-                res.status(HttpStatusCode.BAD_REQUEST).json({message: 'email is required'})
-                return 
+            if (!email) {
+                res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'email is required' })
+                return
             }
 
             await this.interactor.forgotPassword(email)
 
-            res.status(HttpStatusCode.OK).json({message: 'success'})
+            res.status(HttpStatusCode.OK).json({ message: 'success' })
         } catch (error) {
             next(error)
         }
@@ -223,14 +223,14 @@ export class authController {
         try {
             const { email, newPassword } = req.body
 
-            if(!email || !newPassword) {
+            if (!email || !newPassword) {
                 throw new notFound('email or password is missing')
             }
 
             await this.interactor.resetPassword(email, newPassword)
 
-            res.status(HttpStatusCode.OK).json({message: 'success'})
-            
+            res.status(HttpStatusCode.OK).json({ message: 'success' })
+
         } catch (error) {
             next(error)
         }
@@ -257,7 +257,11 @@ export class authController {
 
     onLogOut = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            res.clearCookie('refreshToken')
+            res.clearCookie('refreshToken', {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production' ? true : false,
+                sameSite: 'strict'
+            })
             res.status(HttpStatusCode.OK).json({ message: 'success' })
         } catch (error) {
             next(error)

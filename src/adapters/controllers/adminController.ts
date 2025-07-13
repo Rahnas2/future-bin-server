@@ -21,8 +21,8 @@ export class adminController {
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production' ? true : false,
+                sameSite: 'strict',
                 maxAge: 1 * 24 * 60 * 60 * 1000,
             })
 
