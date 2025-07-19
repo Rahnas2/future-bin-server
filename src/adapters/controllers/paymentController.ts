@@ -21,7 +21,7 @@ export class paymentController {
 
             await this.pickupRequestInteractor.updatePaymentStatus(requestId, paymentStatus)
 
-            res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'success' })
+            res.status(HttpStatusCode.OK).json({ message: 'success' })
         } catch (error) {
             next(error)
         }
@@ -32,7 +32,7 @@ export class paymentController {
             const { amount, userId, pickupRequestId } = req.body
             console.log('amount ', amount)
             const session = await this.stripeService.createPaymentSession(amount * 100, userId, pickupRequestId)
-            res.status(HttpStatusCode.BAD_REQUEST).json({message: 'success', session})
+            res.status(HttpStatusCode.OK).json({message: 'success', session})
         } catch (error) {
             next(error)
         }
@@ -44,7 +44,7 @@ export class paymentController {
 
             const refund = await this.stripeService.createRefund(paymentIntentId, amount)
             console.log('refund ', refund)
-            res.status(HttpStatusCode.BAD_REQUEST).json({message: 'success', refundId: refund.id, amount: refund.amount / 100})
+            res.status(HttpStatusCode.OK).json({message: 'success', refundId: refund.id, amount: refund.amount / 100})
         } catch (error) {
             next(error)
         }
@@ -56,7 +56,7 @@ export class paymentController {
 
             const clientSecret = await this.paymentInteractor.getClientSecret(requestId)
             
-            res.status(HttpStatusCode.BAD_REQUEST).json({message: 'success', clientSecret})
+            res.status(HttpStatusCode.OK).json({message: 'success', clientSecret})
         } catch (error) {
             next(error)
         }
